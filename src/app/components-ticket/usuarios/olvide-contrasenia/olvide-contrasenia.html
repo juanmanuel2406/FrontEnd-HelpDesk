@@ -1,0 +1,43 @@
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icon">
+      <i class="bi bi-key"></i>
+    </div>
+    <h2 class="auth-title">Recuperar Contraseña</h2>
+    <p class="auth-subtitle">Ingresá tu email para recibir instrucciones</p>
+  </div>
+
+  <div class="auth-body">
+    <div class="form-group">
+      <label class="form-label">Correo electrónico</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-envelope-fill"></i>
+        <input
+          type="email"
+          class="form-control auth-input"
+          [(ngModel)]="email"
+          placeholder="ejemplo@correo.com"
+        />
+      </div>
+    </div>
+
+    <button class="btn-auth" (click)="enviar()" [disabled]="cargando">
+      <i class="bi bi-send me-2"></i>
+      <span *ngIf="!cargando">Enviar instrucciones</span>
+      <span *ngIf="cargando">Enviando...</span>
+    </button>
+
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="'notificacion-' + notificacion.tipo">
+      <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+      <span>{{ notificacion.mensaje }}</span>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="auth-footer-text">
+      <button class="btn-back" (click)="volver()">
+        <i class="bi bi-arrow-left me-1"></i> Volver al inicio de sesión
+      </button>
+    </p>
+  </div>
+</div>

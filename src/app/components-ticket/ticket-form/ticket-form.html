@@ -1,0 +1,88 @@
+<div class="ticket-card">
+  <div class="ticket-header">
+    <h2 class="ticket-title">Crear Ticket</h2>
+    <p class="ticket-subtitle">Complete los campos del formulario</p>
+  </div>
+
+  <div class="ticket-body">
+    <!-- Fila Superior: Titulo / Estado / Asignado -->
+    <div class="form-row tri-col">
+      <div class="form-group col-wide">
+        <label class="form-label ticket-label">
+          Titulo / Etiqueta
+          <span class="label-error" *ngIf="errorTitulo"> &mdash; {{ errorTitulo }}</span>
+        </label>
+        <input
+          type="text"
+          class="form-control ticket-input"
+          [(ngModel)]="ticket.titulo"
+          placeholder="Resumen del problema"
+          [class.input-error]="errorTitulo"
+        />
+      </div>
+
+      <div class="form-group col-narrow">
+        <label class="form-label ticket-label">Estado</label>
+        <input
+          type="text"
+          class="form-control ticket-input input-readonly"
+          [(ngModel)]="ticket.estado"
+          disabled
+        />
+      </div>
+
+      <div class="form-group col-narrow">
+        <label class="form-label ticket-label">Asignado</label>
+        <input
+          type="text"
+          class="form-control ticket-input input-readonly"
+          [(ngModel)]="ticket.asignado"
+          disabled
+          placeholder="—"
+        />
+      </div>
+    </div>
+
+    <!-- Fila Central: Descripcion (ancho completo) -->
+    <div class="form-group">
+      <label class="form-label ticket-label">Descripcion</label>
+      <textarea
+        class="form-control ticket-input ticket-textarea"
+        [(ngModel)]="ticket.descripcion"
+        placeholder="Explique el problema en detalle"
+        rows="5"
+      ></textarea>
+    </div>
+
+    <!-- Fila de Clasificacion: Area / Prioridad -->
+    <div class="form-row half-col">
+      <div class="form-group">
+        <label class="form-label ticket-label">Area</label>
+        <select class="form-control ticket-input" [(ngModel)]="ticket.area">
+          <option value="" disabled>Seleccione un area</option>
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label ticket-label">Prioridad</label>
+        <select class="form-control ticket-input" [(ngModel)]="ticket.nivel">
+          <option *ngFor="let nivel of niveles" [value]="nivel">{{ nivel }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Fila Inferior: Acciones -->
+    <div class="actions-row">
+      <button class="btn-ghost" (click)="asignarTicket()" *ngIf="mostrarAsignar">
+        Asignar
+      </button>
+      <button class="btn-primary" (click)="crearTicket()">
+        Crear
+      </button>
+    </div>
+    <p class="actions-note" *ngIf="!mostrarAsignar">
+      El boton Asignar aparece solo cuando el usuario actual coincide con el asignado del ticket.
+    </p>
+  </div>
+</div>

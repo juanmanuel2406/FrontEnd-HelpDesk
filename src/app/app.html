@@ -1,0 +1,131 @@
+<div class="app-shell">
+
+  <!-- ─── Navbar compartida ─── -->
+  <nav class="app-navbar">
+    <div class="container d-flex align-items-center justify-content-between">
+      <span class="app-brand">
+        <img src="/logo.png" alt="Logo" class="app-logo" />
+        <span>Helpdesk</span>
+      </span>
+
+      <div class="d-flex gap-2 align-items-center">
+        <!-- No logueado: botones de autenticacion -->
+        <ng-container *ngIf="!estaLogueado">
+          <button class="nav-btn" (click)="irLogin()">Sign In</button>
+          <button class="nav-btn nav-btn-register" (click)="irRegistro()">Sign Up</button>
+        </ng-container>
+
+        <!-- Logueado: avatar + salir -->
+        <ng-container *ngIf="estaLogueado">
+          <div class="user-avatar-wrapper">
+            <div
+              class="user-avatar"
+              [style.background]="colorAvatar"
+              (click)="toggleDatosUsuario()"
+            >
+              {{ inicial }}
+            </div>
+            <div class="user-popup" *ngIf="mostrarDatosUsuario" (click)="mostrarDatosUsuario = false">
+              <div class="popup-header">
+                <div class="popup-avatar" [style.background]="colorAvatar">{{ inicial }}</div>
+                <div class="popup-name">{{ username }}</div>
+              </div>
+              <div class="popup-body">
+                <div class="popup-row">
+                  <span class="popup-label">Usuario</span>
+                  <span class="popup-value">{{ username }}</span>
+                </div>
+                <div class="popup-row">
+                  <span class="popup-label">Rol</span>
+                  <span class="popup-value">{{ role || 'user' }}</span>
+                </div>
+                <div class="popup-row">
+                  <span class="popup-label">ID</span>
+                  <span class="popup-value">{{ userId || '&mdash;' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-logout" (click)="cerrarSesion()">Salir</button>
+        </ng-container>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Contenido principal ─── -->
+
+  <!-- NO logueado: router-outlet ocupa todo el ancho -->
+  <div *ngIf="!estaLogueado" class="auth-page">
+    <div class="container">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+
+  <!-- Logueado: sidebar + contenido -->
+  <div *ngIf="estaLogueado" class="app-layout">
+    <aside class="app-sidebar">
+      <nav class="sidebar-nav">
+        <button
+          class="sidebar-btn"
+          [class.active]="selectedView === 'crear'"
+          (click)="cambiarVista('crear')"
+        >Crear Ticket</button>
+        <button
+          class="sidebar-btn"
+          [class.active]="selectedView === 'editar'"
+          (click)="cambiarVista('editar')"
+        >Editar Tickets</button>
+        <button
+          class="sidebar-btn"
+          [class.active]="selectedView === 'eliminar'"
+          (click)="cambiarVista('eliminar')"
+        >Eliminar Tickets</button>
+        <button
+          class="sidebar-btn"
+          [class.active]="selectedView === 'mistickets'"
+          (click)="cambiarVista('mistickets')"
+        >Tus Tickets</button>
+        <button
+          class="sidebar-btn"
+          [class.active]="selectedView === 'asignados'"
+          (click)="cambiarVista('asignados')"
+        >Tickets Asignados</button>
+      </nav>
+    </aside>
+
+    <main class="app-main">
+      <div class="container py-4">
+        <!-- Crear Ticket -->
+        <div *ngIf="selectedView === 'crear'">
+          <div class="view-header">
+            <h2 class="view-title">Crear un nuevo ticket</h2>
+            <p class="text-secondary">Complete los campos para registrar un ticket de soporte</p>
+          </div>
+          <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+              <app-ticket-form></app-ticket-form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Placeholders para las demas vistas -->
+        <div class="text-center py-5" *ngIf="selectedView === 'editar'">
+          <p class="text-secondary">Seccion de edicion de tickets — proximamente.</p>
+        </div>
+
+        <div class="text-center py-5" *ngIf="selectedView === 'eliminar'">
+          <p class="text-secondary">Seccion de eliminacion de tickets — proximamente.</p>
+        </div>
+
+        <div class="text-center py-5" *ngIf="selectedView === 'mistickets'">
+          <p class="text-secondary">Seccion de tus tickets — proximamente.</p>
+        </div>
+
+        <div class="text-center py-5" *ngIf="selectedView === 'asignados'">
+          <p class="text-secondary">Seccion de tickets asignados — proximamente.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+</div>

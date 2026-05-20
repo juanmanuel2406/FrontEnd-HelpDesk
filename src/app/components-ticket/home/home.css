@@ -1,0 +1,31 @@
+.home-page {
+  min-height: calc(100vh - 78px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #13131a 0%, #0c0c0e 70%);
+}
+
+.home-hero {
+  text-align: center;
+  padding: 2rem;
+}
+
+.home-hero-content {
+  max-width: 600px;
+}
+
+.home-title {
+  color: #f0f0f0;
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+.home-subtitle {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1.05rem;
+  margin: 0;
+}
