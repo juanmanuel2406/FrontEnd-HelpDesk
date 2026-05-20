@@ -57,15 +57,15 @@
     <!-- Fila de Clasificacion: Area / Prioridad -->
     <div class="form-row half-col">
       <div class="form-group">
-        <label class="form-label ticket-label">Area</label>
+        <label class="form-label ticket-label">Areas</label>
         <select class="form-control ticket-input" [(ngModel)]="ticket.area">
-          <option value="" disabled>Seleccione un area</option>
+          <option value="" disabled>Seleccione unas areas</option>
           <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label ticket-label">Prioridad</label>
+        <label class="form-label ticket-label">Prioridades</label>
         <select class="form-control ticket-input" [(ngModel)]="ticket.nivel">
           <option *ngFor="let nivel of niveles" [value]="nivel">{{ nivel }}</option>
         </select>
