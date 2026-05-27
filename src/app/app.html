@@ -160,30 +160,34 @@
         <h1 class="content-title">Tus Tickets</h1>
         <p class="content-subtitle">Administrá todos tus tickets</p>
 
-        <div class="form-card">
-          <div class="card-tab-header">
-            <button class="card-tab" [class.active]="tabTickets === 'enviados'" (click)="tabTickets = 'enviados'">
-              <i class="bi bi-send me-1"></i> Tickets Enviados
-              <span class="card-tab-count">{{ ticketsEnviados.length }}</span>
-            </button>
-            <button class="card-tab" [class.active]="tabTickets === 'recibidos'" (click)="tabTickets = 'recibidos'">
-              <i class="bi bi-inbox me-1"></i> Tickets Recibidos
-              <span class="card-tab-count">{{ ticketsRecibidos.length }}</span>
-            </button>
-          </div>
+        <div class="tabs-header">
+          <button class="tab-btn" [class.active]="tabTickets === 'enviados'" (click)="tabTickets = 'enviados'">
+            <i class="bi bi-send me-1"></i> Tickets Enviados
+            <span class="tab-count">{{ ticketsEnviados.length }}</span>
+          </button>
+          <button class="tab-btn" [class.active]="tabTickets === 'recibidos'" (click)="tabTickets = 'recibidos'">
+            <i class="bi bi-inbox me-1"></i> Tickets Recibidos
+            <span class="tab-count">{{ ticketsRecibidos.length }}</span>
+          </button>
+        </div>
 
-          <div class="progress-card" *ngIf="tabTickets === 'enviados' && totalEnviados > 0" style="margin: 1rem 1.75rem 0;">
-            <div class="progress-header">
-              <span class="progress-label">Progreso general</span>
-              <span class="progress-count">{{ completados }} / {{ totalEnviados }} completados</span>
-            </div>
-            <div class="progress-bar-track">
-              <div class="progress-bar-fill" [style.width.%]="progreso" [ngClass]="progreso === 100 ? 'bg-success' : progreso > 50 ? 'bg-info' : ''"></div>
-            </div>
-            <span class="progress-porcentaje">{{ progreso }}%</span>
+        <div class="progress-card" *ngIf="tabTickets === 'enviados' && totalEnviados > 0">
+          <div class="progress-header">
+            <span class="progress-label">Progreso general</span>
+            <span class="progress-count">{{ completados }} / {{ totalEnviados }} completados</span>
           </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" [style.width.%]="progreso" [ngClass]="progreso === 100 ? 'bg-success' : progreso > 50 ? 'bg-info' : ''"></div>
+          </div>
+          <span class="progress-porcentaje">{{ progreso }}%</span>
+        </div>
 
-          <div class="form-card-body" *ngIf="tabTickets === 'enviados'">
+        <div class="form-card" *ngIf="tabTickets === 'enviados'">
+          <div class="form-card-header">
+            <h3 class="form-card-title">ENVIADOS POR MÍ</h3>
+            <p class="form-card-subtitle">Tickets que reportaste — podés editarlos o eliminarlos</p>
+          </div>
+          <div class="form-card-body">
             <div *ngIf="ticketsEnviados.length === 0" class="empty-state">
               <i class="bi bi-inbox"></i>
               <p>No reportaste tickets todavía.</p>
@@ -228,8 +232,14 @@
               </table>
             </div>
           </div>
+        </div>
 
-          <div class="form-card-body" *ngIf="tabTickets === 'recibidos'">
+        <div class="form-card" *ngIf="tabTickets === 'recibidos'">
+          <div class="form-card-header">
+            <h3 class="form-card-title">ASIGNADOS A MÍ</h3>
+            <p class="form-card-subtitle">Tickets que tenés que resolver</p>
+          </div>
+          <div class="form-card-body">
             <div *ngIf="ticketsRecibidos.length === 0" class="empty-state">
               <i class="bi bi-inbox"></i>
               <p>No tenés tickets asignados.</p>

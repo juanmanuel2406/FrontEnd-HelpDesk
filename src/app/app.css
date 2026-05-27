@@ -741,12 +741,9 @@
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
-  .card-tab {
-    font-size: 0.72rem;
-    padding: 0.7rem 0.5rem;
-  }
-  .card-tab-header {
+  .tabs-header {
     flex-direction: column;
+    gap: 0.4rem;
   }
 
   .app-navbar {
@@ -811,44 +808,40 @@
     padding: 1.25rem 1.25rem 0.6rem;
   }
 
-/* ===== CARD TABS ===== */
-.card-tab-header {
+/* ===== TABS ===== */
+.tabs-header {
   display: flex;
-  border-bottom: 1px solid #1e1e28;
-  background: #111114;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.card-tab {
-  flex: 1;
+.tab-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.4rem;
-  padding: 0.9rem 1rem;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
+  padding: 0.65rem 1.25rem;
+  background: #16161c;
+  border: 1px solid #2a2a38;
+  border-radius: 10px;
   color: #8888a0;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
-.card-tab:hover {
+.tab-btn:hover {
+  background: #1e1e28;
   color: #d0d0d0;
-  background: rgba(255, 255, 255, 0.02);
 }
 
-.card-tab.active {
+.tab-btn.active {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: #3b82f6;
   color: #ffffff;
-  border-bottom-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.06);
 }
 
-.card-tab-count {
+.tab-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -861,7 +854,7 @@
   font-weight: 700;
 }
 
-.card-tab.active .card-tab-count {
+.tab-btn.active .tab-count {
   background: rgba(59, 130, 246, 0.25);
 }
 
