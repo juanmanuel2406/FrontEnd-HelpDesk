@@ -11,7 +11,7 @@ import { TicketService } from './services-ticket/ticket-service';
 })
 export class App implements OnInit {
   estaLogueado: boolean = false;
-  sidebarActiva: string = 'crear-ticket';
+  sidebarActiva: string = 'tus-tickets';
   usuario: string = '';
   mostrarInfoCuenta: boolean = false;
   userData: any = null;
@@ -96,7 +96,6 @@ export class App implements OnInit {
         this.cdr.detectChanges();
       },
       error: () => {
-        this.tickets = [];
         this.cdr.detectChanges();
       }
     });

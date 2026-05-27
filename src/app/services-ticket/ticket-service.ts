@@ -17,6 +17,7 @@ export class TicketService {
   }
 
   Login(obj: any) {
+    console.log(this.urlUser)
     return this.http.post(this.urlUser + "login", obj)
   }
 
