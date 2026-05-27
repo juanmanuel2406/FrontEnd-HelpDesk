@@ -1,0 +1,286 @@
+<div class="app-shell">
+
+  <nav class="app-navbar">
+    <div class="container d-flex align-items-center justify-content-between">
+      <span class="app-brand" (click)="scrollA('inicio')" style="cursor:pointer">
+        <img src="/logo.png" alt="Logo" class="app-logo" />
+        <span>HelpDesk</span>
+      </span>
+
+      <div *ngIf="!estaLogueado && esLanding" class="landing-nav-links">
+        <a class="landing-nav-link" (click)="scrollA('inicio')">Inicio</a>
+        <a class="landing-nav-link" (click)="scrollA('introduccion')">Introducción</a>
+        <a class="landing-nav-link" (click)="scrollA('funcionalidades')">Funcionalidades</a>
+        <a class="landing-nav-link" (click)="scrollA('demostracion')">Demostración</a>
+        <a class="landing-nav-link" (click)="scrollA('creadores')">Creadores</a>
+      </div>
+
+      <div class="d-flex gap-2 align-items-center">
+        <ng-container *ngIf="!estaLogueado && esLanding">
+          <button class="btn-nav-outline" routerLink="/login">Iniciar Sesión</button>
+          <button class="btn-nav-primary" routerLink="/registro">Crear Cuenta</button>
+        </ng-container>
+        <ng-container *ngIf="estaLogueado">
+          <div class="user-avatar-wrapper" (click)="toggleInfoCuenta($event)">
+            <div class="user-avatar">{{ inicialUsuario }}</div>
+            <div *ngIf="mostrarInfoCuenta" class="account-dropdown" (click)="$event.stopPropagation()">
+              <div class="dropdown-arrow"></div>
+              <div class="dropdown-header">Mi Cuenta</div>
+              <div class="dropdown-body">
+                <div class="dropdown-info-row">
+                  <span class="dropdown-label">Usuario:</span>
+                  <span class="dropdown-value">{{ userData?.username || 'No especificado' }}</span>
+                </div>
+                <div class="dropdown-info-row">
+                  <span class="dropdown-label">Nombre:</span>
+                  <span class="dropdown-value">{{ userData?.fullname || 'No especificado' }}</span>
+                </div>
+                <div class="dropdown-info-row">
+                  <span class="dropdown-label">Email:</span>
+                  <span class="dropdown-value">{{ userData?.email || 'No especificado' }}</span>
+                </div>
+                <div class="dropdown-info-row">
+                  <span class="dropdown-label">Rol:</span>
+                  <span class="dropdown-value">
+                    <span class="badge-role" [ngClass]="userData?.role === 'admin' ? 'badge-admin' : 'badge-user'">{{ userData?.role || 'user' }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-logout" (click)="cerrarSesion()">
+            <i class="bi bi-box-arrow-right me-1"></i> Salir
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </nav>
+
+  <div *ngIf="notificacion" class="notificacion-global" [ngClass]="'notificacion-' + notificacion.tipo">
+    <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
+    <span>{{ notificacion.mensaje }}</span>
+  </div>
+
+  <div *ngIf="!estaLogueado && esLanding" class="landing-page">
+    <router-outlet></router-outlet>
+  </div>
+
+  <div *ngIf="!estaLogueado && !esLanding" class="auth-page">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="estaLogueado" class="logged-in-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a class="sidebar-item" [class.active]="sidebarActiva === 'crear-ticket'" (click)="seleccionarOpcion('crear-ticket')">
+          <i class="bi bi-plus-circle me-2"></i> Crear Ticket
+        </a>
+        <a class="sidebar-item" [class.active]="sidebarActiva === 'tus-tickets'" (click)="seleccionarOpcion('tus-tickets')">
+          <i class="bi bi-ticket me-2"></i> Tus Tickets
+        </a>
+        <a class="sidebar-item" [class.active]="sidebarActiva === 'tickets-asignados'" (click)="seleccionarOpcion('tickets-asignados')">
+          <i class="bi bi-person-check me-2"></i> Tickets Asignados
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div *ngIf="sidebarActiva === 'crear-ticket'" class="content-section">
+        <h1 class="content-title">{{ editMode ? 'Editar ticket' : 'Crear un nuevo ticket' }}</h1>
+        <p class="content-subtitle">{{ editMode ? 'Modificá los campos del ticket' : 'Complete los campos para registrar un ticket de soporte' }}</p>
+
+        <div class="form-card">
+          <div class="form-card-header">
+            <h3 class="form-card-title">{{ editMode ? 'EDITAR TICKET' : 'CREAR TICKET' }}</h3>
+            <p class="form-card-subtitle">{{ editMode ? 'Modificá los datos y guardá los cambios' : 'Complete los campos del formulario' }}</p>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row-3">
+              <div class="form-group wide">
+                <input type="text" class="form-input" placeholder="Resumen del problema" [(ngModel)]="createForm.title" />
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-input" value="Pendiente" disabled />
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-input" value="—" disabled />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <textarea class="form-textarea" placeholder="Explique el problema en detalle" rows="6" [(ngModel)]="createForm.description"></textarea>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <div class="select-wrapper">
+                  <select class="form-input">
+                    <option value="" disabled selected>Seleccione unas áreas</option>
+                    <option value="soporte">Soporte Técnico</option>
+                    <option value="facturacion">Facturación</option>
+                    <option value="recursos-humanos">Recursos Humanos</option>
+                    <option value="desarrollo">Desarrollo</option>
+                    <option value="infraestructura">Infraestructura</option>
+                  </select>
+                  <i class="bi bi-chevron-down select-arrow"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="select-wrapper">
+                  <select class="form-input" [(ngModel)]="createForm.priority">
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                    <option value="critica">Crítica</option>
+                  </select>
+                  <i class="bi bi-chevron-down select-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <div class="d-flex gap-2">
+                <button class="btn-crear" (click)="editMode ? guardarEdicion() : crearTicket()">
+                  <i class="bi" [ngClass]="editMode ? 'bi-check-lg' : 'bi-plus-lg'"></i>
+                  {{ editMode ? 'GUARDAR CAMBIOS' : 'CREAR' }}
+                </button>
+                <button class="btn-crear btn-cancelar" *ngIf="editMode" (click)="resetForm()">
+                  <i class="bi bi-x-lg"></i> CANCELAR
+                </button>
+              </div>
+              <p class="form-footer-text">El botón Asignar aparece solo cuando el usuario actual coincide con el asignado del ticket.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="sidebarActiva === 'tus-tickets'" class="content-section">
+        <h1 class="content-title">Tus Tickets</h1>
+        <p class="content-subtitle">Administra tus tickets registrados</p>
+
+        <div class="progress-card" *ngIf="totalTickets > 0">
+          <div class="progress-header">
+            <span class="progress-label">Progreso general</span>
+            <span class="progress-count">{{ completados }} / {{ totalTickets }} completados</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" [style.width.%]="progreso" [ngClass]="progreso === 100 ? 'bg-success' : progreso > 50 ? 'bg-info' : ''"></div>
+          </div>
+          <span class="progress-porcentaje">{{ progreso }}%</span>
+        </div>
+
+        <div class="form-card">
+          <div class="form-card-header">
+            <h3 class="form-card-title">MIS TICKETS</h3>
+            <p class="form-card-subtitle">Seleccione un ticket para editarlo o eliminarlo</p>
+          </div>
+          <div class="form-card-body">
+            <div class="table-responsive">
+              <table class="tickets-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let t of tusTickets">
+                    <td class="td-id">{{ t.id }}</td>
+                    <td class="td-title">{{ t.title }}</td>
+                    <td>
+                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : 'badge-pendiente'">
+                        <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
+                        {{ estadoLabel(t.status) }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
+                    </td>
+                    <td>
+                      <button class="btn-action btn-action-edit" (click)="iniciarEdicion(t)" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn-action btn-action-delete" (click)="eliminarTicket(t.id)" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="tusTickets.length === 0">
+                    <td colspan="5" class="text-center text-secondary py-4">
+                      <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                      No tienes tickets registrados aún.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="sidebarActiva === 'tickets-asignados'" class="content-section">
+        <h1 class="content-title">Tickets Asignados</h1>
+        <p class="content-subtitle">Tickets asignados a tu usuario</p>
+
+        <div class="form-card">
+          <div class="form-card-header">
+            <h3 class="form-card-title">ASIGNADOS A MÍ</h3>
+            <p class="form-card-subtitle">Tickets donde figuras como responsable</p>
+          </div>
+          <div class="form-card-body">
+            <div class="table-responsive">
+              <table class="tickets-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let t of ticketsAsignados">
+                    <td class="td-id">{{ t.id }}</td>
+                    <td class="td-title">{{ t.title }}</td>
+                    <td>
+                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : 'badge-pendiente'">
+                        <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
+                        {{ estadoLabel(t.status) }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
+                    </td>
+                    <td>
+                      <button class="btn-action" [ngClass]="t.status === 'closed' ? 'btn-action-reopen' : 'btn-action-complete'" (click)="toggleEstado(t)" title="Cambiar estado">
+                        <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-arrow-counterclockwise' : 'bi-check-lg'"></i>
+                        {{ t.status === 'closed' ? 'Reabrir' : 'Completar' }}
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="ticketsAsignados.length === 0">
+                    <td colspan="5" class="text-center text-secondary py-4">
+                      <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                      No tienes tickets asignados.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+</div>

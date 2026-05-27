@@ -1,0 +1,85 @@
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icon">
+      <i class="bi bi-shield-lock"></i>
+    </div>
+    <h2 class="auth-title">Iniciar Sesión</h2>
+    <p class="auth-subtitle">Ingresá tus credenciales para acceder</p>
+  </div>
+
+  <div class="auth-body">
+    <div class="form-group">
+      <label class="form-label">Nombre de usuario</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-person-fill"></i>
+        <input
+          type="text"
+          class="form-control auth-input"
+          [(ngModel)]="loginDTO.username"
+          (ngModelChange)="verificarBloqueo()"
+          placeholder="Ingresá tu usuario"
+          [disabled]="bloqueado"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-lock-fill"></i>
+        <input
+          type="password"
+          class="form-control auth-input"
+          [(ngModel)]="loginDTO.password"
+          placeholder="••••••••"
+          [disabled]="bloqueado"
+        />
+      </div>
+    </div>
+
+    <div class="form-group d-flex align-items-center justify-content-between">
+      <div class="form-check">
+        <input
+          type="checkbox"
+          class="form-check-input"
+          id="recordar"
+          [(ngModel)]="recordar"
+        />
+        <label class="form-check-label" for="recordar">
+          Recordar contraseña
+        </label>
+      </div>
+      <button class="btn-forgot" (click)="olvideContrasenia()">
+        ¿Olvidaste tu contraseña?
+      </button>
+    </div>
+
+    <button
+      class="btn-auth"
+      (click)="Login()"
+      [disabled]="bloqueado"
+    >
+      <i class="bi bi-box-arrow-in-right me-2"></i>
+      <span *ngIf="!bloqueado">Ingresar</span>
+      <span *ngIf="bloqueado">Bloqueado</span>
+    </button>
+
+    <div *ngIf="bloqueado" class="block-banner">
+      <i class="bi bi-clock-history me-2"></i>
+      Acceso bloqueado — reintentá en
+      <strong>{{ minutosBloqueo }}:{{ segundosBloqueo.toString().padStart(2, '0') }}</strong>
+    </div>
+
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="'notificacion-' + notificacion.tipo">
+      <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : notificacion.tipo === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-x-circle-fill'"></i>
+      <span>{{ notificacion.mensaje }}</span>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="auth-footer-text">
+      ¿No tenés cuenta?
+      <a routerLink="/registro" class="auth-link">Crear una cuenta</a>
+    </p>
+  </div>
+</div>

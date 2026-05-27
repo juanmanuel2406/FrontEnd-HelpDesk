@@ -1,0 +1,15 @@
+INSTRUCCIÓN PARA LA API
+
+Para que funcionen "Iniciar Sesión" y "Crear un Nuevo Usuario",
+se debe agregar la siguiente configuracion en el appsettings.json
+de la API (proyecto backend):
+
+"SMTP": {
+  "Host": "smtp.gmail.com",
+  "Port": 587,
+  "UseSsl": false,
+  "Username": "verificacionemailhelpdesk@gmail.com",
+  "Password": "dohqdpzbzcenvaun",
+  "FromAddress": "verificacionemailhelpdesk@gmail.com",
+  "FromName": "Helpdesk"
+}

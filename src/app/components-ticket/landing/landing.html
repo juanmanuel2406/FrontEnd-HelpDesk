@@ -1,0 +1,133 @@
+<section id="inicio" class="landing-hero">
+  <div class="landing-hero-bg"></div>
+  <div class="container">
+    <div class="landing-hero-content text-center">
+      <div class="landing-hero-icon">
+        <i class="bi bi-ticket-perforated"></i>
+      </div>
+      <h1 class="landing-hero-title">HelpDesk</h1>
+      <p class="landing-hero-subtitle">
+        Sistema integral de gestión de tickets de soporte técnico.
+        Optimizá, organizá y resolvé solicitudes de forma eficiente.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="introduccion" class="landing-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="landing-section-title">¿Qué es HelpDesk?</h2>
+      <p class="landing-section-desc">
+        HelpDesk es una plataforma moderna para la gestión de tickets de soporte
+        técnico. Permite a los equipos de TI recibir, asignar, priorizar y dar
+        seguimiento a solicitudes de servicio e incidencias desde un solo lugar.
+      </p>
+    </div>
+
+    <div id="demostracion" class="landing-ejemplo">
+      <div class="landing-ejemplo-card">
+        <div class="landing-ejemplo-header">
+          <div class="landing-ejemplo-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="landing-ejemplo-title">Nuevo Ticket</span>
+        </div>
+        <div class="landing-ejemplo-body">
+          <div class="landing-ejemplo-field">
+            <span class="label">Título</span>
+            <span class="value">No funciona el acceso a la VPN</span>
+          </div>
+          <div class="landing-ejemplo-field">
+            <span class="label">Descripción</span>
+            <span class="value">Al intentar conectar desde casa recibo error 403. Ya probé reiniciando el equipo y el router.</span>
+          </div>
+          <div class="landing-ejemplo-field">
+            <span class="label">Prioridad</span>
+            <span class="value prioridad-alta">Alta</span>
+          </div>
+          <div class="landing-ejemplo-field">
+            <span class="label">Estado</span>
+            <span class="value estado-abierto">Abierto</span>
+          </div>
+        </div>
+      </div>
+      <p class="landing-ejemplo-caption">
+        Ejemplo de un ticket de soporte creado en HelpDesk.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="funcionalidades" class="landing-section landing-section--dark">
+  <div class="container">
+    <h2 class="landing-section-title text-center">Funcionalidades</h2>
+    <p class="landing-section-desc text-center mb-5">
+      Todo lo que necesitás para gestionar el soporte técnico de tu organización.
+    </p>
+
+    <div class="row g-4">
+      <div class="col-12 col-md-6 col-lg-4" *ngFor="let f of caracteristicas">
+        <div class="landing-feature-card">
+          <div class="landing-feature-icon">
+            <i class="bi" [ngClass]="f.icono"></i>
+          </div>
+          <h3 class="landing-feature-title">{{ f.titulo }}</h3>
+          <p class="landing-feature-desc">{{ f.descripcion }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ejemplos" class="landing-section">
+  <div class="container">
+    <h2 class="landing-section-title text-center">¿Cómo funciona?</h2>
+    <p class="landing-section-desc text-center mb-5">
+      Empezá en 4 pasos simples.
+    </p>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-sm-6 col-lg-3" *ngFor="let p of pasos">
+        <div class="landing-step-card text-center">
+          <div class="landing-step-icon">
+            <i class="bi" [ngClass]="p.icono"></i>
+          </div>
+          <h3 class="landing-step-title">{{ p.titulo }}</h3>
+          <p class="landing-step-desc">{{ p.descripcion }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="creadores" class="landing-section landing-section--dark">
+  <div class="container text-center">
+    <h2 class="landing-section-title">Desarrollado por</h2>
+    <p class="landing-section-desc mb-4">
+      Estudiantes de la carrera de Sistemas del
+      <strong>Instituto Juan Amos Comenio</strong>
+    </p>
+
+    <div class="landing-creadores">
+      <div class="landing-creador" *ngFor="let c of creadores">
+        <div class="landing-creador-avatar">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <span class="landing-creador-nombre">{{ c }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="landing-cta">
+  <div class="container text-center">
+    <h2 class="landing-cta-title">¿Listo para empezar?</h2>
+    <p class="landing-cta-desc">
+      Registrate gratis y empezá a gestionar tickets de soporte técnico.
+    </p>
+    <button class="btn-landing-primary btn-lg" (click)="irARegistro()">
+      <i class="bi bi-rocket-takeoff me-2"></i>Comenzar ahora
+    </button>
+  </div>
+</section>
