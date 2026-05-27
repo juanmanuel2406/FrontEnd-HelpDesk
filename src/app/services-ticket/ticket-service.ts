@@ -8,7 +8,7 @@ export class TicketService {
 
   constructor(private http: HttpClient) { }
 
-  urlUser = "https://localhost:7124/api/v1/User/"
+  urlUser = "https://matcher-helmet-constable.ngrok-free.dev/api/v1/User/"
   urlTicket = "https://localhost:7124/api/v1/Ticket/"
 
   private headers(token: string): { headers: HttpHeaders } {
