@@ -23,6 +23,7 @@ export class App implements OnInit {
   createForm: any = { title: '', description: '', priority: 'medium' };
   editMode: boolean = false;
   editTicketId: number | null = null;
+  tabTickets: string = 'enviados';
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -42,27 +43,31 @@ export class App implements OnInit {
     return sessionStorage.getItem('token') || '';
   }
 
-  get tusTickets(): any[] {
-    if (!this.userData) return [];
-    return this.tickets.filter(t => t.createdById === this.userData.userId);
+  get ticketsVisibles(): any[] {
+    return this.tickets.filter(t => !t.isDeleted);
   }
 
-  get ticketsAsignados(): any[] {
+  get ticketsEnviados(): any[] {
     if (!this.userData) return [];
-    return this.tickets.filter(t => t.assignedToId === this.userData.userId);
+    return this.ticketsVisibles.filter(t => t.createdById === this.userData.userId);
   }
 
-  get totalTickets(): number {
-    return this.tusTickets.length;
+  get ticketsRecibidos(): any[] {
+    if (!this.userData) return [];
+    return this.ticketsVisibles.filter(t => t.assignedToId === this.userData.userId);
+  }
+
+  get totalEnviados(): number {
+    return this.ticketsEnviados.length;
   }
 
   get completados(): number {
-    return this.tusTickets.filter(t => t.status === 'closed').length;
+    return this.ticketsEnviados.filter(t => t.status === 'closed').length;
   }
 
   get progreso(): number {
-    if (this.totalTickets === 0) return 0;
-    return Math.round((this.completados / this.totalTickets) * 100);
+    if (this.totalEnviados === 0) return 0;
+    return Math.round((this.completados / this.totalEnviados) * 100);
   }
 
   ngOnInit(): void {
@@ -219,12 +224,19 @@ export class App implements OnInit {
   }
 
   estadoLabel(status: string): string {
-    return status === 'closed' ? 'Completado' : 'Pendiente';
+    const map: any = { open: 'Pendiente', closed: 'Realizado', rejected: 'Rechazado' };
+    return map[status] || status;
   }
 
   prioridadLabel(p: string): string {
     const map: any = { low: 'Baja', medium: 'Media', high: 'Alta' };
     return map[p] || p;
+  }
+
+  fechaLabel(f: string): string {
+    if (!f) return '—';
+    const d = new Date(f);
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
   cerrarSesion(): void {
@@ -261,6 +273,9 @@ export class App implements OnInit {
 
   seleccionarOpcion(opcion: string): void {
     this.sidebarActiva = opcion;
+    if (opcion === 'tus-tickets') {
+      this.tabTickets = 'enviados';
+    }
   }
 
   toggleInfoCuenta(event: Event): void {

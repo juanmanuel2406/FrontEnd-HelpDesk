@@ -84,9 +84,6 @@
         <a class="sidebar-item" [class.active]="sidebarActiva === 'tus-tickets'" (click)="seleccionarOpcion('tus-tickets')">
           <i class="bi bi-ticket me-2"></i> Tus Tickets
         </a>
-        <a class="sidebar-item" [class.active]="sidebarActiva === 'tickets-asignados'" (click)="seleccionarOpcion('tickets-asignados')">
-          <i class="bi bi-person-check me-2"></i> Tickets Asignados
-        </a>
       </nav>
     </aside>
 
@@ -161,12 +158,23 @@
 
       <div *ngIf="sidebarActiva === 'tus-tickets'" class="content-section">
         <h1 class="content-title">Tus Tickets</h1>
-        <p class="content-subtitle">Administra tus tickets registrados</p>
+        <p class="content-subtitle">Administrá todos tus tickets</p>
 
-        <div class="progress-card" *ngIf="totalTickets > 0">
+        <div class="tabs-header">
+          <button class="tab-btn" [class.active]="tabTickets === 'enviados'" (click)="tabTickets = 'enviados'">
+            <i class="bi bi-send me-1"></i> Tickets Enviados
+            <span class="tab-count">{{ ticketsEnviados.length }}</span>
+          </button>
+          <button class="tab-btn" [class.active]="tabTickets === 'recibidos'" (click)="tabTickets = 'recibidos'">
+            <i class="bi bi-inbox me-1"></i> Tickets Recibidos
+            <span class="tab-count">{{ ticketsRecibidos.length }}</span>
+          </button>
+        </div>
+
+        <div class="progress-card" *ngIf="tabTickets === 'enviados' && totalEnviados > 0">
           <div class="progress-header">
             <span class="progress-label">Progreso general</span>
-            <span class="progress-count">{{ completados }} / {{ totalTickets }} completados</span>
+            <span class="progress-count">{{ completados }} / {{ totalEnviados }} completados</span>
           </div>
           <div class="progress-bar-track">
             <div class="progress-bar-fill" [style.width.%]="progreso" [ngClass]="progreso === 100 ? 'bg-success' : progreso > 50 ? 'bg-info' : ''"></div>
@@ -174,10 +182,10 @@
           <span class="progress-porcentaje">{{ progreso }}%</span>
         </div>
 
-        <div class="form-card">
+        <div class="form-card" *ngIf="tabTickets === 'enviados'">
           <div class="form-card-header">
-            <h3 class="form-card-title">MIS TICKETS</h3>
-            <p class="form-card-subtitle">Seleccione un ticket para editarlo o eliminarlo</p>
+            <h3 class="form-card-title">ENVIADOS POR MÍ</h3>
+            <p class="form-card-subtitle">Tickets que reportaste — podés editarlos o eliminarlos</p>
           </div>
           <div class="form-card-body">
             <div class="table-responsive">
@@ -188,11 +196,12 @@
                     <th>Título</th>
                     <th>Estado</th>
                     <th>Prioridad</th>
+                    <th>Fecha alta</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let t of tusTickets">
+                  <tr *ngFor="let t of ticketsEnviados">
                     <td class="td-id">{{ t.id }}</td>
                     <td class="td-title">{{ t.title }}</td>
                     <td>
@@ -204,6 +213,7 @@
                     <td>
                       <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
                     </td>
+                    <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
                     <td>
                       <button class="btn-action btn-action-edit" (click)="iniciarEdicion(t)" title="Editar">
                         <i class="bi bi-pencil"></i>
@@ -213,10 +223,10 @@
                       </button>
                     </td>
                   </tr>
-                  <tr *ngIf="tusTickets.length === 0">
-                    <td colspan="5" class="text-center text-secondary py-4">
+                  <tr *ngIf="ticketsEnviados.length === 0">
+                    <td colspan="6" class="text-center text-secondary py-4">
                       <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
-                      No tienes tickets registrados aún.
+                      No reportaste tickets todavía.
                     </td>
                   </tr>
                 </tbody>
@@ -224,16 +234,11 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div *ngIf="sidebarActiva === 'tickets-asignados'" class="content-section">
-        <h1 class="content-title">Tickets Asignados</h1>
-        <p class="content-subtitle">Tickets asignados a tu usuario</p>
-
-        <div class="form-card">
+        <div class="form-card" *ngIf="tabTickets === 'recibidos'">
           <div class="form-card-header">
             <h3 class="form-card-title">ASIGNADOS A MÍ</h3>
-            <p class="form-card-subtitle">Tickets donde figuras como responsable</p>
+            <p class="form-card-subtitle">Tickets que tenés que resolver</p>
           </div>
           <div class="form-card-body">
             <div class="table-responsive">
@@ -244,11 +249,12 @@
                     <th>Título</th>
                     <th>Estado</th>
                     <th>Prioridad</th>
+                    <th>Fecha alta</th>
                     <th>Acción</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let t of ticketsAsignados">
+                  <tr *ngFor="let t of ticketsRecibidos">
                     <td class="td-id">{{ t.id }}</td>
                     <td class="td-title">{{ t.title }}</td>
                     <td>
@@ -260,6 +266,7 @@
                     <td>
                       <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
                     </td>
+                    <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
                     <td>
                       <button class="btn-action" [ngClass]="t.status === 'closed' ? 'btn-action-reopen' : 'btn-action-complete'" (click)="toggleEstado(t)" title="Cambiar estado">
                         <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-arrow-counterclockwise' : 'bi-check-lg'"></i>
@@ -267,10 +274,10 @@
                       </button>
                     </td>
                   </tr>
-                  <tr *ngIf="ticketsAsignados.length === 0">
-                    <td colspan="5" class="text-center text-secondary py-4">
+                  <tr *ngIf="ticketsRecibidos.length === 0">
+                    <td colspan="6" class="text-center text-secondary py-4">
                       <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
-                      No tienes tickets asignados.
+                      No tenés tickets asignados.
                     </td>
                   </tr>
                 </tbody>
