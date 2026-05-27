@@ -1,0 +1,153 @@
+========================================
+ OBSERVACIONES Y CAMBIOS REALIZADOS
+========================================
+
+FECHA: 26/05/2026
+
+----------------------------------------
+ ERRORES ORIGINALES DETECTADOS
+----------------------------------------
+
+1. BACKEND - TicketCreateDTO:
+   - El campo Priority era string no nullable (string). Si el frontend
+     enviaba "priority": null, System.Text.Json lanzaba una excepción
+     de serialización antes de llegar al controlador.
+   - Faltaban atributos [Required] y [MaxLength] en Title y Description
+     para validación en nivel de modelo.
+   - El DTO de actualización (TicketUpdateDTO) tenía todos los campos
+     como obligatorios, impediendo actualizaciones parciales.
+
+2. BACKEND - TicketController:
+   - Ningún endpoint tenía try-catch. Cualquier excepción no controlada
+     devolvía un error 500 genérico sin detalles.
+
+3. BACKEND - TicketService:
+   - El campo Status no se seteaba explícitamente (dependía del default
+     de la entidad).
+   - Los mensajes de error estaban en inglés.
+
+4. BACKEND - SQLite / Foreign Keys:
+   - La conexión a SQLite no tenía Foreign Keys=True, por lo que las
+     restricciones de clave foránea no se validaban.
+
+5. BACKEND - Program.cs:
+   - No se suprimía el filtro automático de validación de modelos
+     (SuppressModelStateInvalidFilter), causando que errores de
+     validación devolvieran un formato distinto al GeneralResponse.
+
+6. BACKEND - Modelo LoginResponse:
+   - Faltaban las propiedades Fullname y Email, por lo que el frontend
+     recibía undefined al intentar mostrar el perfil del usuario.
+
+7. FRONTEND - Ausencia de AuthInterceptor:
+   - No existía un HttpInterceptor que inyectara automáticamente el
+     token JWT en las peticiones. Cada método del servicio recibía
+     el token como parámetro manual, y si el llamador no lo pasaba,
+     la request llegaba sin autenticación al backend (Error 401).
+
+8. FRONTEND - TicketService:
+   - Todos los métodos requerían el parámetro token manualmente,
+     generando código repetitivo y propenso a errores.
+
+9. FRONTEND - app.ts:
+   - El getter token() y el pase manual de this.token a cada llamada
+     del servicio era frágil. Si el token expiraba o no estaba
+     disponible, la request fallaba con 401.
+   - Los callbacks de error no mostraban el mensaje del backend.
+
+----------------------------------------
+ CAMBIOS REALIZADOS - BACKEND
+----------------------------------------
+
+Archivo: api.models/DTO/TicketCreateDTO.cs
+  - Agregado: using System.ComponentModel.DataAnnotations
+  - Agregado: [Required(ErrorMessage = "Title is required")] en Title
+  - Agregado: [MaxLength(200)] en Title
+  - Agregado: [Required(ErrorMessage = "Description is required")] en Description
+  - Agregado: [MaxLength(4000)] en Description
+  - Cambiado: Priority de string a string? (nullable)
+  - Se eliminó el default "medium" (ahora lo maneja el service)
+
+Archivo: api.models/DTO/TicketUpdateDTO.cs
+  - Title, Description, Status, Priority pasaron de string a string?
+    (nullable para permitir actualizaciones parciales)
+  - Agregados: [MaxLength] en cada campo
+
+Archivo: api.helpdesk/Controllers/v1/TicketController.cs
+  - Todos los endpoints (GetAll, GetById, Create, Update, Delete)
+    ahora tienen try-catch
+  - En caso de excepción devuelven StatusCode(500) con GeneralResponse
+    y el mensaje de error detallado
+  - En Create se agregó validación de ModelState.IsValid
+
+Archivo: api.services/v1/TicketService.cs
+  - Se setea Status = "open" explícitamente en la creación
+  - Se setea CreatedAt = DateTime.UtcNow explícitamente
+  - Mensajes cambiados a español
+  - En Update, los campos solo se actualizan si dto.X no es null
+    (usando if en lugar de ??)
+  - Mejor manejo de DbUpdateException con InnerException
+
+Archivo: api.helpdesk/Program.cs
+  - Agregado: options.SuppressModelStateInvalidFilter = true
+    (para mantener formato consistente GeneralResponse)
+  - Se eliminó la creación de SqliteHandler que no se usaba
+
+Archivo: api.helpdesk/appsettings.json
+  - ConnectionString actualizada: "Data source=database/database.sqlite;Foreign Keys=True"
+
+----------------------------------------
+ CAMBIOS REALIZADOS - FRONTEND
+----------------------------------------
+
+Archivo NUEVO: services-ticket/auth-interceptor.ts
+  - Implementa HttpInterceptor
+  - Lee el token de sessionStorage.getItem('token')
+  - Clona la request y agrega header Authorization: Bearer {token}
+  - Salta las rutas /login y /register (no necesitan token)
+
+Archivo: services-ticket/ticket-service.ts
+  - Eliminado: import de HttpHeaders
+  - Eliminado: método privado headers(token)
+  - Eliminado: parámetro token de todos los métodos
+    (getTickets, getTicketById, createTicket, updateTicket, deleteTicket)
+
+Archivo: app-module.ts
+  - Agregado: import de HTTP_INTERCEPTORS desde @angular/common/http
+  - Agregado: import de AuthInterceptor
+  - Agregado en providers: { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+
+Archivo: app.ts
+  - Eliminado: getter token() que leía de sessionStorage
+  - Eliminado: this.token de todas las llamadas al servicio
+    (cargarTickets, crearTicket, guardarEdicion, eliminarTicket, toggleEstado)
+  - Mejorados los callbacks error() para mostrar err.error?.mensaje
+    o err.error?.title del backend
+
+========================================
+ ANÁLISIS DEL ERROR 401 (JWT)
+========================================
+
+Se verificó el flujo completo de autenticación JWT:
+
+1. GENERACIÓN (JwtHandler.CrearJWT):
+   - Usa IConfiguration para leer Secret, Issuer, Audience
+   - Agrega ClaimTypes.NameIdentifier con el userId como string
+   - Agrega ClaimTypes.Role con el rol del usuario
+   - Usa HMAC-SHA256 con la clave de appsettings.json
+
+2. VALIDACIÓN (Program.cs - AddJwtBearer):
+   - ValidateIssuer = true con ValidIssuer = "api.helpdesk"
+   - ValidateAudience = true con ValidAudience = "helpdesk"
+   - ValidateLifetime = true
+   - ValidateIssuerSigningKey = true
+   - Misma clave que en generación
+
+3. CONCLUSIÓN:
+   - La generación y validación del JWT en el backend es CORRECTA
+   - El error 401 ocurría porque el frontend NO enviaba el token
+     en el header Authorization
+   - Solución: creación del AuthInterceptor que inyecta el token
+     automáticamente en todas las peticiones
+
+========================================
