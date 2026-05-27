@@ -1,0 +1,99 @@
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icon">
+      <i class="bi bi-person-plus"></i>
+    </div>
+    <h2 class="auth-title">Crear Cuenta</h2>
+    <p class="auth-subtitle">Completá tus datos para registrarte</p>
+  </div>
+
+  <div class="auth-body">
+    <div class="form-group">
+      <label class="form-label">Nombre completo</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-person-vcard-fill"></i>
+        <input
+          type="text"
+          class="form-control auth-input"
+          [(ngModel)]="usuario.fullname"
+          placeholder="Ej: Juan Pérez"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre de usuario</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-person-fill"></i>
+        <input
+          type="text"
+          class="form-control auth-input"
+          [(ngModel)]="usuario.username"
+          placeholder="Ej: juan123"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Correo electrónico</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-envelope-fill"></i>
+        <input
+          type="email"
+          class="form-control auth-input"
+          [(ngModel)]="usuario.email"
+          placeholder="ejemplo@correo.com"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <div class="input-icon-wrapper">
+        <i class="bi bi-lock-fill"></i>
+        <input
+          type="password"
+          class="form-control auth-input"
+          [(ngModel)]="usuario.password"
+          (input)="onPasswordChange()"
+          (focus)="passwordTouched = true"
+          placeholder="••••••••"
+        />
+      </div>
+      <div class="password-reqs" *ngIf="passwordTouched && usuario.password.length > 0">
+        <div
+          class="password-req"
+          *ngFor="let req of passwordReqs"
+          [class.valid]="req.valid"
+          [class.invalid]="!req.valid"
+        >
+          <i class="bi" [ngClass]="req.valid ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+          <span>{{ req.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn-auth flex-fill" (click)="RegistrarUsuario()" [disabled]="cargando">
+        <i class="bi bi-person-plus me-2"></i>
+        <span *ngIf="!cargando">Registrarse</span>
+        <span *ngIf="cargando">Registrando...</span>
+      </button>
+      <button class="btn-outline" (click)="usuario = resetFormulario()">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+    </div>
+
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="'notificacion-' + notificacion.tipo">
+      <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+      <span>{{ notificacion.mensaje }}</span>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="auth-footer-text">
+      ¿Ya tenés cuenta?
+      <a routerLink="/login" class="auth-link">Iniciar sesión</a>
+    </p>
+  </div>
+</div>
