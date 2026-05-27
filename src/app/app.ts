@@ -153,6 +153,7 @@ export class App implements OnInit {
     this.editMode = true;
     this.editTicketId = ticket.id;
     this.sidebarActiva = 'crear-ticket';
+    this.cdr.detectChanges();
   }
 
   guardarEdicion(): void {
@@ -184,8 +185,9 @@ export class App implements OnInit {
     this.service.deleteTicket(id, this.token).subscribe({
       next: (res: any) => {
         if (res.estado) {
+          this.tickets = this.tickets.filter(t => t.id !== id);
           this.mostrarNotificacion('success', res.mensaje || 'Ticket eliminado correctamente.');
-          this.cargarTickets();
+          this.cdr.detectChanges();
         } else {
           this.mostrarNotificacion('danger', res.mensaje || 'Error al eliminar el ticket.');
         }
@@ -240,7 +242,7 @@ export class App implements OnInit {
 
   cerrarSesion(): void {
     this.estaLogueado = false;
-    this.sidebarActiva = 'crear-ticket';
+    this.sidebarActiva = 'tus-tickets';
     this.mostrarInfoCuenta = false;
     this.tickets = [];
     sessionStorage.removeItem('logueado');
@@ -274,6 +276,8 @@ export class App implements OnInit {
     this.sidebarActiva = opcion;
     if (opcion === 'tus-tickets') {
       this.tabTickets = 'enviados';
+    } else if (opcion === 'crear-ticket') {
+      this.resetForm();
     }
     this.cdr.detectChanges();
   }

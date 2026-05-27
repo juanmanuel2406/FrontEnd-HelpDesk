@@ -243,6 +243,7 @@
             <div *ngIf="ticketsRecibidos.length === 0" class="empty-state">
               <i class="bi bi-inbox"></i>
               <p>No tenés tickets asignados.</p>
+              <button class="btn-crear" (click)="seleccionarOpcion('crear-ticket')">Crear mi primer ticket</button>
             </div>
             <div class="table-responsive" *ngIf="ticketsRecibidos.length > 0">
               <table class="tickets-table">
