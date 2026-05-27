@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -8,8 +9,8 @@ export class TicketService {
 
   constructor(private http: HttpClient) { }
 
-  urlUser = "https://matcher-helmet-constable.ngrok-free.dev/api/v1/User/"
-  urlTicket = "https://localhost:7124/api/v1/Ticket/"
+  private urlUser = environment.apiUrl + '/User/'
+  private urlTicket = environment.apiUrl + '/Ticket/'
 
   private headers(token: string): { headers: HttpHeaders } {
     return { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) };
