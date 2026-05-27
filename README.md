@@ -1,17 +1,29 @@
 # FrontEnd-HelpDesk
 
-Frontend Angular para el sistema de HelpDesk.
+Sistema de HelpDesk con Angular + .NET.
 
-Este proyecto fue generado con Angular CLI versión 20.3.10.
+## Estructura del proyecto
 
-## Development server
+```
+/
+├── frontend/          → Aplicación Angular
+├── backend/           → API .NET (Web API + models + services)
+├── OBSERVACIONES_CAMBIOS.txt   → Detalle de errores y cambios realizados
+└── README.md
+```
+
+## Frontend (Angular)
 
 ```bash
+cd frontend
+npm install
 ng serve
 ```
 
-Navegar a `http://localhost:4200/`.
+## Backend (.NET)
 
-## Backend
-
-El backend .NET está en la carpeta `BackEnd de Juan/`.
+```bash
+cd backend
+dotnet restore
+dotnet run --project api.helpdesk
+```

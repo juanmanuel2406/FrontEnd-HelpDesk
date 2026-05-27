@@ -4,6 +4,30 @@
 
 FECHA: 26/05/2026
 
+‼️ IMPORTANTE - NO OLVIDAR ‼️
+========================================
+Antes de ejecutar el backend, asegúrate de que
+el archivo backend/api.helpdesk/appsettings.json
+contenga las siguientes configuraciones:
+
+1. Jwt:
+   - Secret: "CambiarPorClaveLargaMinimo32Caracteres!!"
+   - Issuer: "api.helpdesk"
+   - Audience: "helpdesk"
+   - ExpirationMinutes: "120"
+
+2. Smtp:
+   - Host: "smtp.gmail.com"
+   - Port: 587
+   - Username: "verificacionemailhelpdesk@gmail.com"
+   - Password y FromAddress con los valores correctos
+
+3. ConnectionStrings:
+   - defaultConnection: "Data source=database/database.sqlite;Foreign Keys=True"
+
+Sin estos valores el backend no funciona correctamente.
+========================================
+
 ----------------------------------------
  ERRORES ORIGINALES DETECTADOS
 ----------------------------------------
