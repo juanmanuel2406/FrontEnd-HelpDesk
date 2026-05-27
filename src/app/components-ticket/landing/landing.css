@@ -347,3 +347,56 @@
   color: #8888a0;
   margin: 0 0 1.5rem;
 }
+
+@media (max-width: 768px) {
+  .landing-hero {
+    padding: 2.5rem 0 2rem;
+  }
+  .landing-hero-title {
+    font-size: 2rem;
+  }
+  .landing-hero-subtitle {
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+  .landing-section {
+    padding: 2.5rem 0;
+  }
+  .landing-section-title {
+    font-size: 1.35rem;
+  }
+  .landing-cta {
+    padding: 2.5rem 0 3rem;
+  }
+  .landing-cta-title {
+    font-size: 1.35rem;
+  }
+  .landing-ejemplo {
+    max-width: 100%;
+  }
+  .landing-creadores {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .landing-hero-title {
+    font-size: 1.5rem;
+  }
+  .landing-hero-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+  .landing-creador {
+    min-width: 130px;
+    padding: 0.85rem 1rem;
+  }
+  .landing-feature-card {
+    padding: 1.25rem;
+  }
+  .btn-lg {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}

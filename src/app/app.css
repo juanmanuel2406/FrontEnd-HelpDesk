@@ -601,24 +601,19 @@
   letter-spacing: 0.04em;
 }
 
-.prioridad-baja {
+.prioridad-low {
   background: rgba(148, 163, 184, 0.15);
   color: #94a3b8;
 }
 
-.prioridad-media {
+.prioridad-medium {
   background: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
 }
 
-.prioridad-alta {
+.prioridad-high {
   background: rgba(251, 146, 60, 0.15);
   color: #fb923c;
-}
-
-.prioridad-critica {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
 }
 
 .badge-role {
@@ -740,5 +735,181 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .app-navbar {
+    padding: 0.85rem 0;
+  }
+  .app-brand {
+    font-size: 1.25rem;
+  }
+  .landing-nav-links {
+    display: none;
+  }
+  .btn-nav-outline,
+  .btn-nav-primary {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .logged-in-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: auto;
+    border-right: none;
+    border-bottom: 1px solid #1e1e28;
+    padding: 0.6rem 1rem;
+  }
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.35rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .sidebar-item {
+    white-space: nowrap;
+    font-size: 0.78rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .main-content {
+    padding: 1.25rem;
+  }
+  .content-title {
+    font-size: 1.35rem;
+  }
+
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+  .form-card-body {
+    padding: 1.25rem;
+  }
+  .form-card-header {
+    padding: 1.25rem 1.25rem 0.6rem;
+  }
+
+  .notificacion-global {
+    top: 76px;
+    right: 0.75rem;
+    left: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tickets-table {
+    font-size: 0.78rem;
+  }
+  .td-title {
+    max-width: 160px;
+  }
+
+  .progress-card {
+    padding: 1rem;
+  }
+
+  .landing-hero {
+    padding: 3rem 0 2.5rem;
+  }
+  .landing-hero-title {
+    font-size: 2rem;
+  }
+  .landing-hero-subtitle {
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+  .landing-section {
+    padding: 2.5rem 0;
+  }
+  .landing-section-title {
+    font-size: 1.35rem;
+  }
+  .landing-ejemplo {
+    max-width: 100%;
+  }
+  .landing-cta {
+    padding: 3rem 0;
+  }
+  .landing-cta-title {
+    font-size: 1.35rem;
+  }
+
+  .auth-header {
+    padding: 2rem 1.5rem 1.5rem;
+  }
+  .auth-body {
+    padding: 1.5rem;
+  }
+  .auth-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-brand {
+    font-size: 1.1rem;
+  }
+  .app-logo {
+    height: 32px;
+  }
+
+  .landing-hero-title {
+    font-size: 1.6rem;
+  }
+  .landing-hero-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.8rem;
+  }
+  .landing-creador {
+    min-width: 140px;
+    padding: 1rem;
+  }
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+  .sidebar {
+    padding: 0.5rem 0.75rem;
+  }
+  .sidebar-item {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.55rem;
+  }
+
+  .btn-crear {
+    width: 100%;
+    text-align: center;
+  }
+  .form-footer .d-flex {
+    width: 100%;
+  }
+  .form-footer .d-flex .btn-crear {
+    flex: 1;
+  }
+
+  .auth-page {
+    padding: 1rem 0;
+  }
+  .auth-page .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }

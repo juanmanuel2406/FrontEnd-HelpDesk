@@ -244,3 +244,15 @@ select.auth-input {
 .password-req.invalid {
   color: #666678;
 }
+
+@media (max-width: 576px) {
+  .auth-header {
+    padding: 1.75rem 1.25rem 1.25rem;
+  }
+  .auth-body {
+    padding: 1.25rem;
+  }
+  .auth-title {
+    font-size: 1.25rem;
+  }
+}

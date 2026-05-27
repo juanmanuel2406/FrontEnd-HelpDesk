@@ -20,7 +20,7 @@ export class App implements OnInit {
   notificacion: { tipo: string; mensaje: string } | null = null;
   private timeoutId: any = null;
 
-  createForm: any = { title: '', description: '', priority: 'media' };
+  createForm: any = { title: '', description: '', priority: 'medium' };
   editMode: boolean = false;
   editTicketId: number | null = null;
 
@@ -108,7 +108,7 @@ export class App implements OnInit {
   }
 
   resetForm(): void {
-    this.createForm = { title: '', description: '', priority: 'media' };
+    this.createForm = { title: '', description: '', priority: 'medium' };
     this.editMode = false;
     this.editTicketId = null;
   }
@@ -223,7 +223,7 @@ export class App implements OnInit {
   }
 
   prioridadLabel(p: string): string {
-    const map: any = { baja: 'Baja', media: 'Media', alta: 'Alta', critica: 'Crítica' };
+    const map: any = { low: 'Baja', medium: 'Media', high: 'Alta' };
     return map[p] || p;
   }
 
