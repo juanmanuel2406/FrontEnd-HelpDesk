@@ -275,6 +275,7 @@ export class App implements OnInit {
     if (opcion === 'tus-tickets') {
       this.tabTickets = 'enviados';
     }
+    this.cdr.detectChanges();
   }
 
   toggleInfoCuenta(event: Event): void {
