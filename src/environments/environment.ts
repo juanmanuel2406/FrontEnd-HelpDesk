@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://matcher-helmet-constable.ngrok-free.dev/api/v1'
+  apiUrl: 'https://localhost:7124/api/v1'
 };
