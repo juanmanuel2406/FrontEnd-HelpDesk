@@ -29,21 +29,19 @@
               <div class="dropdown-body">
                 <div class="dropdown-info-row">
                   <span class="dropdown-label">Usuario:</span>
-                  <span class="dropdown-value">{{ userData?.username || 'No especificado' }}</span>
+                  <span class="dropdown-value">{{ userData?.username }}</span>
                 </div>
                 <div class="dropdown-info-row">
                   <span class="dropdown-label">Nombre:</span>
-                  <span class="dropdown-value">{{ userData?.fullname || 'No especificado' }}</span>
+                  <span class="dropdown-value">{{ userData?.fullname }}</span>
                 </div>
                 <div class="dropdown-info-row">
                   <span class="dropdown-label">Email:</span>
-                  <span class="dropdown-value">{{ userData?.email || 'No especificado' }}</span>
+                  <span class="dropdown-value">{{ userData?.email }}</span>
                 </div>
                 <div class="dropdown-info-row">
                   <span class="dropdown-label">Rol:</span>
-                  <span class="dropdown-value">
-                    <span class="badge-role" [ngClass]="userData?.role === 'admin' ? 'badge-admin' : 'badge-user'">{{ userData?.role || 'user' }}</span>
-                  </span>
+                  <span class="dropdown-value">{{ userData?.role || 'user' }}</span>
                 </div>
               </div>
             </div>
@@ -160,12 +158,12 @@
         <h1 class="content-title">Tus Tickets</h1>
         <p class="content-subtitle">Administrá todos tus tickets</p>
 
-        <div class="tabs-header">
-          <button class="tab-btn" [class.active]="tabTickets === 'enviados'" (click)="tabTickets = 'enviados'">
+        <div class="nav nav-pills nav-fill bg-white p-2 mb-3 rounded shadow-sm border">
+          <button class="nav-link fw-bold text-dark rounded" [class.active]="tabTickets === 'enviados'" [class.bg-primary]="tabTickets === 'enviados'" [class.text-white]="tabTickets === 'enviados'" (click)="tabTickets = 'enviados'">
             <i class="bi bi-send me-1"></i> Tickets Enviados
             <span class="tab-count">{{ ticketsEnviados.length }}</span>
           </button>
-          <button class="tab-btn" [class.active]="tabTickets === 'recibidos'" (click)="tabTickets = 'recibidos'">
+          <button class="nav-link fw-bold text-dark rounded" [class.active]="tabTickets === 'recibidos'" [class.bg-primary]="tabTickets === 'recibidos'" [class.text-white]="tabTickets === 'recibidos'" (click)="tabTickets = 'recibidos'">
             <i class="bi bi-inbox me-1"></i> Tickets Recibidos
             <span class="tab-count">{{ ticketsRecibidos.length }}</span>
           </button>
@@ -188,10 +186,14 @@
             <p class="form-card-subtitle">Tickets que reportaste — podés editarlos o eliminarlos</p>
           </div>
           <div class="form-card-body">
-            <div *ngIf="ticketsEnviados.length === 0" class="empty-state">
-              <i class="bi bi-inbox"></i>
-              <p>No reportaste tickets todavía.</p>
-              <button class="btn-crear" (click)="seleccionarOpcion('crear-ticket')">Crear mi primer ticket</button>
+            <div *ngIf="ticketsEnviados.length === 0">
+              <div class="text-center p-5 mt-4 bg-light rounded border border-2 border-dashed">
+                <i class="bi bi-folder-x text-secondary d-block mb-3" style="font-size: 3rem;"></i>
+                <p class="text-muted fs-5 fw-semibold fst-italic mb-0">No reportaste tickets todavía.</p>
+              </div>
+              <div class="text-center mt-3">
+                <button class="btn-crear" (click)="seleccionarOpcion('crear-ticket')">Crear mi primer ticket</button>
+              </div>
             </div>
             <div class="table-responsive" *ngIf="ticketsEnviados.length > 0">
               <table class="tickets-table">
@@ -240,10 +242,14 @@
             <p class="form-card-subtitle">Tickets que tenés que resolver</p>
           </div>
           <div class="form-card-body">
-            <div *ngIf="ticketsRecibidos.length === 0" class="empty-state">
-              <i class="bi bi-inbox"></i>
-              <p>No tenés tickets asignados.</p>
-              <button class="btn-crear" (click)="seleccionarOpcion('crear-ticket')">Crear mi primer ticket</button>
+            <div *ngIf="ticketsRecibidos.length === 0">
+              <div class="text-center p-5 mt-4 bg-light rounded border border-2 border-dashed">
+                <i class="bi bi-folder-x text-secondary d-block mb-3" style="font-size: 3rem;"></i>
+                <p class="text-muted fs-5 fw-semibold fst-italic mb-0">No tenés tickets asignados.</p>
+              </div>
+              <div class="text-center mt-3">
+                <button class="btn-crear" (click)="seleccionarOpcion('crear-ticket')">Crear mi primer ticket</button>
+              </div>
             </div>
             <div class="table-responsive" *ngIf="ticketsRecibidos.length > 0">
               <table class="tickets-table">

@@ -285,6 +285,7 @@ export class App implements OnInit {
   toggleInfoCuenta(event: Event): void {
     event.stopPropagation();
     this.mostrarInfoCuenta = !this.mostrarInfoCuenta;
+    this.cdr.detectChanges();
   }
 
   cerrarInfoCuenta(): void {

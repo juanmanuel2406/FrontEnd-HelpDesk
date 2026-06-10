@@ -870,14 +870,8 @@
 
 .empty-state i {
   font-size: 3rem;
-  color: #333348;
+  color: #555568;
   margin-bottom: 1rem;
-}
-
-.empty-state p {
-  color: #8888a0;
-  font-size: 0.95rem;
-  margin: 0 0 1.25rem;
 }
 
 .td-fecha {
