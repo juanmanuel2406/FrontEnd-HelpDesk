@@ -4,6 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { Login } from './components-ticket/usuarios/login/login';
 import { Registro } from './components-ticket/usuarios/registro/registro';
 import { OlvideContrasenia } from './components-ticket/usuarios/olvide-contrasenia/olvide-contrasenia';
+import { ResetContrasenia } from './components-ticket/usuarios/reset-contrasenia/reset-contrasenia';
 import { Landing } from './components-ticket/landing/landing';
 
 const routes: Routes = [
@@ -11,6 +12,7 @@ const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'registro', component: Registro },
   { path: 'olvide-contrasenia', component: OlvideContrasenia },
+  { path: 'reset-contrasenia', component: ResetContrasenia },
   { path: '**', redirectTo: '' }
 ];
 
@@ -19,9 +21,6 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {
-  
-
-
 
 
  }

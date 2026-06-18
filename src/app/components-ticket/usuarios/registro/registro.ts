@@ -1,22 +1,12 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { TicketService } from '../../../services-ticket/ticket-service';
-
-interface Usuario {
-  id: number;
-  username: string;
-  fullname: string;
-  email: string;
-  password: string;
-  role: string;
-}
+import { TicketService, RegisterDTO } from '../../../services-ticket/ticket-service';
 
 interface PasswordRequirement {
   key: string;
   label: string;
   valid: boolean;
 }
-
 
 @Component({
   selector: 'app-registro',
@@ -26,7 +16,13 @@ interface PasswordRequirement {
 })
 export class Registro {
 
-  usuario: Usuario = this.resetFormulario();
+  registerDTO: RegisterDTO = {
+    username: '',
+    password: '',
+    email: '',
+    fullname: '',
+    areaId: null
+  };
   notificacion: { tipo: string; mensaje: string } | null = null;
   cargando: boolean = false;
   passwordTouched: boolean = false;
@@ -39,7 +35,6 @@ export class Registro {
     { key: 'digit', label: 'Al menos un número (0-9)', valid: false },
   ];
 
-
   constructor(private service: TicketService, private router: Router) {}
 
   private mostrarNotificacion(tipo: string, mensaje: string): void {
@@ -48,20 +43,19 @@ export class Registro {
     this.timeoutId = setTimeout(() => this.notificacion = null, 5000);
   }
 
-  resetFormulario(): Usuario {
+  resetFormulario(): void {
     this.passwordTouched = false;
-    return {
-      id: 0,
+    this.registerDTO = {
       username: '',
-      fullname: '',
-      email: '',
       password: '',
-      role: 'user'
+      email: '',
+      fullname: '',
+      areaId: null
     };
   }
 
   onPasswordChange(): void {
-    const pwd = this.usuario.password;
+    const pwd = this.registerDTO.password;
     this.passwordReqs[0].valid = pwd.length >= 6;
     this.passwordReqs[1].valid = /[A-Z]/.test(pwd);
     this.passwordReqs[2].valid = /[a-z]/.test(pwd);
@@ -75,8 +69,7 @@ export class Registro {
   RegistrarUsuario(): void {
     this.passwordTouched = true;
 
-
-    if (!this.usuario.fullname || !this.usuario.username || !this.usuario.email || !this.usuario.password) {
+    if (!this.registerDTO.fullname || !this.registerDTO.username || !this.registerDTO.email || !this.registerDTO.password) {
       this.mostrarNotificacion('danger', 'Por favor completá todos los campos.');
       return;
     }
@@ -88,28 +81,21 @@ export class Registro {
 
     this.cargando = true;
     this.notificacion = null;
-    const payload = {
-      username: this.usuario.username,
-      password: this.usuario.password,
-      email: this.usuario.email,
-      fullname: this.usuario.fullname
-    };
-    this.service.RegistrarUsuario(payload).subscribe(
-      (resultado: any) => {
+    this.service.Register(this.registerDTO).subscribe({
+      next: (resultado: any) => {
         this.cargando = false;
         if (resultado.estado) {
           this.mostrarNotificacion('success', resultado.mensaje || 'Usuario registrado exitosamente. Revisá tu correo para confirmar la cuenta.');
-          this.usuario = this.resetFormulario();
+          this.resetFormulario();
         } else {
           this.mostrarNotificacion('danger', resultado.mensaje || 'Error al registrar el usuario.');
         }
       },
-      (error: any) => {
+      error: () => {
         this.cargando = false;
-        console.error('Error al registrar', error);
         this.mostrarNotificacion('danger', 'Error al conectar con el servidor.');
       }
-    );
+    });
   }
 
   irALogin(): void {

@@ -1,0 +1,187 @@
+<div class="dashboard">
+  <h1 class="content-title">Dashboard</h1>
+  <p class="content-subtitle">Resumen general del sistema de tickets</p>
+
+  <div *ngIf="cargando" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!cargando && dashboard">
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-icon"><i class="bi bi-ticket"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.totalTickets }}</span>
+          <span class="kpi-label">Total Tickets</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-open">
+        <div class="kpi-icon"><i class="bi bi-envelope-open"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.openTickets }}</span>
+          <span class="kpi-label">Abiertos</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-progress">
+        <div class="kpi-icon"><i class="bi bi-arrow-repeat"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.inProgressTickets }}</span>
+          <span class="kpi-label">En Progreso</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-resolved">
+        <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.resolvedTickets }}</span>
+          <span class="kpi-label">Resueltos</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-closed">
+        <div class="kpi-icon"><i class="bi bi-check-all"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.closedTickets }}</span>
+          <span class="kpi-label">Cerrados</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-mine">
+        <div class="kpi-icon"><i class="bi bi-person"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.ticketsCreatedByMe }}</span>
+          <span class="kpi-label">Creados por mí</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-assigned">
+        <div class="kpi-icon"><i class="bi bi-person-check"></i></div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ dashboard.ticketsAssignedToMe }}</span>
+          <span class="kpi-label">Asignados a mí</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIORITY BREAKDOWN -->
+    <div class="dashboard-grid">
+      <div class="form-card">
+        <div class="form-card-header">
+          <h3 class="form-card-title">Prioridades</h3>
+          <p class="form-card-subtitle">Distribución por prioridad</p>
+        </div>
+        <div class="form-card-body">
+          <div class="priority-bar">
+            <div class="priority-row">
+              <span class="priority-label prioridad-low-text">Baja</span>
+              <div class="priority-track">
+                <div class="priority-fill priority-fill-low" [style.width.%]="statusPercent(dashboard.lowPriority)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.lowPriority }}</span>
+            </div>
+            <div class="priority-row">
+              <span class="priority-label prioridad-medium-text">Media</span>
+              <div class="priority-track">
+                <div class="priority-fill priority-fill-medium" [style.width.%]="statusPercent(dashboard.mediumPriority)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.mediumPriority }}</span>
+            </div>
+            <div class="priority-row">
+              <span class="priority-label prioridad-high-text">Alta</span>
+              <div class="priority-track">
+                <div class="priority-fill priority-fill-high" [style.width.%]="statusPercent(dashboard.highPriority)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.highPriority }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS BREAKDOWN -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <h3 class="form-card-title">Estados</h3>
+          <p class="form-card-subtitle">Distribución por estado</p>
+        </div>
+        <div class="form-card-body">
+          <div class="priority-bar">
+            <div class="priority-row">
+              <span class="priority-label" style="color:#fbbf24;">Abierto</span>
+              <div class="priority-track">
+                <div class="priority-fill" style="background:#fbbf24;" [style.width.%]="statusPercent(dashboard.openTickets)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.openTickets }}</span>
+            </div>
+            <div class="priority-row">
+              <span class="priority-label" style="color:#60a5fa;">En Progreso</span>
+              <div class="priority-track">
+                <div class="priority-fill" style="background:#60a5fa;" [style.width.%]="statusPercent(dashboard.inProgressTickets)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.inProgressTickets }}</span>
+            </div>
+            <div class="priority-row">
+              <span class="priority-label" style="color:#4ade80;">Resuelto</span>
+              <div class="priority-track">
+                <div class="priority-fill" style="background:#4ade80;" [style.width.%]="statusPercent(dashboard.resolvedTickets)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.resolvedTickets }}</span>
+            </div>
+            <div class="priority-row">
+              <span class="priority-label" style="color:#94a3b8;">Cerrado</span>
+              <div class="priority-track">
+                <div class="priority-fill" style="background:#94a3b8;" [style.width.%]="statusPercent(dashboard.closedTickets)"></div>
+              </div>
+              <span class="priority-count">{{ dashboard.closedTickets }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT TICKETS -->
+    <div class="form-card mt-4" *ngIf="dashboard.recentTickets && dashboard.recentTickets.length > 0">
+      <div class="form-card-header">
+        <h3 class="form-card-title">Tickets Recientes</h3>
+        <p class="form-card-subtitle">Últimos tickets creados</p>
+      </div>
+      <div class="form-card-body">
+        <div class="table-responsive">
+          <table class="tickets-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Creador</th>
+                <th>Asignado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of dashboard.recentTickets">
+                <td class="td-id">{{ t.id }}</td>
+                <td class="td-title">{{ t.title }}</td>
+                <td>
+                  <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : t.status === 'resolved' ? 'badge-completado' : t.status === 'in_progress' ? 'badge-pendiente' : 'badge-pendiente'">
+                    {{ estadoLabel(t.status) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
+                </td>
+                <td>
+                  <div class="avatar-mini" [style.background]="avatarColor(t.createdByFullname)" title="{{ t.createdByFullname }}">{{ inicialDe(t.createdByFullname) }}</div>
+                </td>
+                <td>
+                  <div class="avatar-mini" *ngIf="t.assignedToFullname" [style.background]="avatarColor(t.assignedToFullname)" title="{{ t.assignedToFullname }}">{{ inicialDe(t.assignedToFullname) }}</div>
+                  <span *ngIf="!t.assignedToFullname" class="text-muted">—</span>
+                </td>
+                <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

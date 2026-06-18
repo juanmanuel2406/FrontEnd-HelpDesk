@@ -1,0 +1,62 @@
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icon">
+      <i class="bi bi-key"></i>
+    </div>
+    <h2 class="auth-title">Restablecer Contraseña</h2>
+    <p class="auth-subtitle">Ingresá tu nueva contraseña</p>
+  </div>
+
+  <div class="auth-body">
+    <div *ngIf="!exito">
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-lock-fill"></i>
+          <input
+            type="password"
+            class="form-control auth-input"
+            [(ngModel)]="newPassword"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirmar contraseña</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-lock-fill"></i>
+          <input
+            type="password"
+            class="form-control auth-input"
+            [(ngModel)]="confirmPassword"
+            placeholder="Repetí la contraseña"
+          />
+        </div>
+      </div>
+
+      <button class="btn-auth" (click)="resetear()" [disabled]="cargando">
+        <i class="bi bi-check-circle me-2"></i>
+        <span *ngIf="!cargando">Restablecer contraseña</span>
+        <span *ngIf="cargando">Procesando...</span>
+      </button>
+    </div>
+
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="'notificacion-' + notificacion.tipo">
+      <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+      <span>{{ notificacion.mensaje }}</span>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="auth-footer-text" *ngIf="!exito">
+      <button class="btn-back" (click)="irALogin()">
+        <i class="bi bi-arrow-left me-1"></i> Volver al inicio de sesión
+      </button>
+    </p>
+
+    <p class="auth-footer-text" *ngIf="exito">
+      <a routerLink="/login" class="auth-link">Ir a iniciar sesión</a>
+    </p>
+  </div>
+</div>
