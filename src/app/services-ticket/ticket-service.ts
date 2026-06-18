@@ -1,6 +1,111 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+
+export interface LoginDTO {
+  username: string;
+  password: string;
+}
+
+export interface RegisterDTO {
+  username: string;
+  password: string;
+  email: string;
+  fullname: string;
+  areaId?: number | null;
+}
+
+export interface ForgotPasswordDTO {
+  email: string;
+}
+
+export interface ResetPasswordDTO {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
+export interface TicketCreateDTO {
+  title: string;
+  description: string;
+  priority?: string | null;
+}
+
+export interface TicketUpdateDTO {
+  title?: string | null;
+  description?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  assignedToId?: number | null;
+}
+
+export interface GeneralResponse {
+  estado: boolean;
+  codigo: number;
+  mensaje: string;
+}
+
+export interface LoginResponse extends GeneralResponse {
+  token: string;
+  userId: number;
+  username: string;
+  fullname: string;
+  email: string;
+  role: string;
+  active: number;
+}
+
+export interface TicketCreateResponse extends GeneralResponse {
+  ticketId: number;
+}
+
+export interface TicketInboxResponse {
+  id: number;
+  title: string;
+  status: string;
+  priority: string;
+  createdById: number;
+  createdByUsername: string;
+  createdByFullname: string;
+  assignedToId: number | null;
+  assignedToUsername: string | null;
+  assignedToFullname: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface TicketDetailResponse {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  createdById: number;
+  createdByUsername: string;
+  createdByFullname: string;
+  createdByEmail: string;
+  assignedToId: number | null;
+  assignedToUsername: string | null;
+  assignedToFullname: string | null;
+  assignedToEmail: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface DashboardResponse {
+  totalTickets: number;
+  openTickets: number;
+  inProgressTickets: number;
+  resolvedTickets: number;
+  closedTickets: number;
+  lowPriority: number;
+  mediumPriority: number;
+  highPriority: number;
+  ticketsCreatedByMe: number;
+  ticketsAssignedToMe: number;
+  recentTickets: TicketInboxResponse[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -9,109 +114,75 @@ export class TicketService {
 
   constructor(private http: HttpClient) { }
 
-  private urlUser = environment.apiUrl + '/User/'
-  private urlTicket = environment.apiUrl + '/Ticket/'
-  private urlTeam = environment.apiUrl + '/Team/'
-  private urlHistory = environment.apiUrl + '/TicketHistory/'
-  private urlAgent = environment.apiUrl + '/Agent/'
-  private urlInvite = environment.apiUrl + '/Invitation/'
+  private urlAuth = environment.apiUrl + '/Auth/';
+  private urlTicket = environment.apiUrl + '/Ticket/';
+  private urlDashboard = environment.apiUrl + '/Dashboard/';
 
   private headers(token: string): { headers: HttpHeaders } {
     return { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) };
   }
 
-  // === AUTH ===
-  Login(obj: any) {
-    return this.http.post(this.urlUser + "login", obj)
+  // === AUTH (public) ===
+
+  Login(dto: LoginDTO): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(this.urlAuth + 'login', dto);
   }
 
-  RegistrarUsuario(obj: any) {
-    return this.http.post(this.urlUser + "register", obj)
+  Register(dto: RegisterDTO): Observable<GeneralResponse> {
+    return this.http.post<GeneralResponse>(this.urlAuth + 'register', dto);
   }
 
-  // === USERS / AGENTS ===
-  getUsers(token: string) {
-    return this.http.get(this.urlUser, this.headers(token))
+  ConfirmEmail(userId: number, token: string): Observable<GeneralResponse> {
+    return this.http.get<GeneralResponse>(this.urlAuth + 'confirm-email', {
+      params: { userId, token }
+    });
   }
 
-  updateUserRole(userId: number, role: string, token: string) {
-    return this.http.patch(this.urlUser + userId + '/role', { role }, this.headers(token))
+  ForgotPassword(dto: ForgotPasswordDTO): Observable<GeneralResponse> {
+    return this.http.post<GeneralResponse>(this.urlAuth + 'forgot-password', dto);
   }
 
-  updateUserAvailability(userId: number, availability: string, token: string) {
-    return this.http.patch(this.urlUser + userId + '/availability', { availability }, this.headers(token))
+  ResetPassword(dto: ResetPasswordDTO): Observable<GeneralResponse> {
+    return this.http.post<GeneralResponse>(this.urlAuth + 'reset-password', dto);
   }
 
-  // === TEAMS ===
-  getTeams(token: string) {
-    return this.http.get(this.urlTeam, this.headers(token))
+  // === TICKETS (auth required) ===
+
+  getTickets(token: string): Observable<any[]> {
+    return this.http.get<any[]>(this.urlTicket, this.headers(token));
   }
 
-  createTeam(dto: any, token: string) {
-    return this.http.post(this.urlTeam, dto, this.headers(token))
+  getTicketInbox(token: string): Observable<TicketInboxResponse[]> {
+    return this.http.get<TicketInboxResponse[]>(this.urlTicket + 'inbox', this.headers(token));
   }
 
-  getTeamMembers(teamId: number, token: string) {
-    return this.http.get(this.urlTeam + teamId + '/members', this.headers(token))
+  getTicketById(id: number, token: string): Observable<any> {
+    return this.http.get<any>(this.urlTicket + id, this.headers(token));
   }
 
-  addTeamMember(teamId: number, userId: number, token: string) {
-    return this.http.post(this.urlTeam + teamId + '/members', { userId }, this.headers(token))
+  getTicketDetail(id: number, token: string): Observable<TicketDetailResponse> {
+    return this.http.get<TicketDetailResponse>(this.urlTicket + id + '/detail', this.headers(token));
   }
 
-  removeTeamMember(teamId: number, userId: number, token: string) {
-    return this.http.delete(this.urlTeam + teamId + '/members/' + userId, this.headers(token))
+  createTicket(dto: TicketCreateDTO, token: string): Observable<TicketCreateResponse> {
+    return this.http.post<TicketCreateResponse>(this.urlTicket, dto, this.headers(token));
   }
 
-  // === INVITATIONS ===
-  inviteAgent(email: string, token: string) {
-    return this.http.post(this.urlInvite, { email }, this.headers(token))
+  updateTicket(id: number, dto: TicketUpdateDTO, token: string): Observable<GeneralResponse> {
+    return this.http.put<GeneralResponse>(this.urlTicket + id, dto, this.headers(token));
   }
 
-  resendInvitation(email: string, token: string) {
-    return this.http.post(this.urlInvite + 'resend', { email }, this.headers(token))
+  softDeleteTicket(id: number, token: string): Observable<GeneralResponse> {
+    return this.http.delete<GeneralResponse>(this.urlTicket + id, this.headers(token));
   }
 
-  getMyPendingInvitation(token: string) {
-    return this.http.get(this.urlInvite + 'pending', this.headers(token))
+  hardDeleteTicket(id: number, token: string): Observable<GeneralResponse> {
+    return this.http.delete<GeneralResponse>(this.urlTicket + id + '/hard', this.headers(token));
   }
 
-  respondInvitation(invitationId: number, accept: boolean, token: string) {
-    return this.http.patch(this.urlInvite + invitationId + '/respond', { accept }, this.headers(token))
-  }
+  // === DASHBOARD (auth required) ===
 
-  // === USER TEAMS ===
-  getUserTeams(userId: number, token: string) {
-    return this.http.get(this.urlUser + userId + '/teams', this.headers(token))
-  }
-
-  // === TICKETS ===
-  getTickets(token: string) {
-    return this.http.get(this.urlTicket, this.headers(token))
-  }
-
-  getTicketById(id: number, token: string) {
-    return this.http.get(this.urlTicket + id, this.headers(token))
-  }
-
-  createTicket(dto: any, token: string) {
-    return this.http.post(this.urlTicket, dto, this.headers(token))
-  }
-
-  updateTicket(id: number, dto: any, token: string) {
-    return this.http.put(this.urlTicket + id, dto, this.headers(token))
-  }
-
-  deleteTicket(id: number, token: string) {
-    return this.http.delete(this.urlTicket + id, this.headers(token))
-  }
-
-  assignTicket(ticketId: number, userId: number, token: string) {
-    return this.http.patch(this.urlTicket + ticketId + '/assign', { assignedToId: userId }, this.headers(token))
-  }
-
-  // === TICKET HISTORY ===
-  getTicketHistory(ticketId: number, token: string) {
-    return this.http.get(this.urlHistory + ticketId, this.headers(token))
+  getDashboard(token: string): Observable<DashboardResponse> {
+    return this.http.get<DashboardResponse>(this.urlDashboard, this.headers(token));
   }
 }

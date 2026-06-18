@@ -7,7 +7,9 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = sessionStorage.getItem('token');
 
-    if (token && !req.url.includes('/login') && !req.url.includes('/register')) {
+    const publicUrls = ['/login', '/register', '/forgot-password', '/reset-password', '/confirm-email'];
+
+    if (token && !publicUrls.some(url => req.url.includes(url))) {
       const cloned = req.clone({
         setHeaders: { Authorization: `Bearer ${token}` }
       });

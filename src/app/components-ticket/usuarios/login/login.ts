@@ -1,11 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { TicketService } from '../../../services-ticket/ticket-service';
-
-interface LoginDTO {
-  username: string;
-  password: string;
-}
+import { TicketService, LoginDTO, LoginResponse } from '../../../services-ticket/ticket-service';
 
 @Component({
   selector: 'app-login',
@@ -128,18 +123,6 @@ export class Login implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-
-  
-  private decodeToken(token: string): any {
-    try {
-      const payload = token.split('.')[1];
-      const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-      return JSON.parse(decoded);
-    } catch {
-      return null;
-    }
-  }
-
   Login(): void {
     if (this.bloqueado) return;
 
@@ -148,7 +131,7 @@ export class Login implements OnInit, OnDestroy {
       return;
     }
     this.service.Login(this.loginDTO).subscribe({
-      next: (resultado: any) => {
+      next: (resultado: LoginResponse) => {
 
         if (resultado.estado) {
           const cuentas = this.getCuentas();
@@ -167,16 +150,6 @@ export class Login implements OnInit, OnDestroy {
           sessionStorage.setItem('usuario', this.loginDTO.username);
           if (resultado.token) {
             sessionStorage.setItem('token', resultado.token);
-            const decoded = this.decodeToken(resultado.token);
-            if (decoded) {
-              const tokenRole = (decoded.role || decoded.rol || '').toLowerCase();
-              const apiRole = (resultado.role || '').toLowerCase();
-              if (tokenRole && apiRole && tokenRole !== apiRole) {
-                console.warn('[JWT] Rol del token no coincide con el de la API. Usando rol del token.');
-              }
-              const finalRole = tokenRole || apiRole;
-              resultado.role = finalRole;
-            }
           }
           if (resultado.userId) {
             sessionStorage.setItem('userData', JSON.stringify({
@@ -185,8 +158,7 @@ export class Login implements OnInit, OnDestroy {
               fullname: resultado.fullname,
               email: resultado.email,
               role: resultado.role,
-              active: resultado.active,
-              availability: resultado.availability || 'available'
+              active: resultado.active
             }));
           }
           this.router.navigate(['/']);

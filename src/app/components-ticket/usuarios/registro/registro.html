@@ -15,7 +15,7 @@
         <input
           type="text"
           class="form-control auth-input"
-          [(ngModel)]="usuario.fullname"
+          [(ngModel)]="registerDTO.fullname"
           placeholder="Ej: Juan Pérez"
         />
       </div>
@@ -28,7 +28,7 @@
         <input
           type="text"
           class="form-control auth-input"
-          [(ngModel)]="usuario.username"
+          [(ngModel)]="registerDTO.username"
           placeholder="Ej: juan123"
         />
       </div>
@@ -41,7 +41,7 @@
         <input
           type="email"
           class="form-control auth-input"
-          [(ngModel)]="usuario.email"
+          [(ngModel)]="registerDTO.email"
           placeholder="ejemplo@correo.com"
         />
       </div>
@@ -54,13 +54,13 @@
         <input
           type="password"
           class="form-control auth-input"
-          [(ngModel)]="usuario.password"
+          [(ngModel)]="registerDTO.password"
           (input)="onPasswordChange()"
           (focus)="passwordTouched = true"
           placeholder="••••••••"
         />
       </div>
-      <div class="password-reqs" *ngIf="passwordTouched && usuario.password.length > 0">
+      <div class="password-reqs" *ngIf="passwordTouched && registerDTO.password.length > 0">
         <div
           class="password-req"
           *ngFor="let req of passwordReqs"
@@ -79,7 +79,7 @@
         <span *ngIf="!cargando">Registrarse</span>
         <span *ngIf="cargando">Registrando...</span>
       </button>
-      <button class="btn-outline" (click)="usuario = resetFormulario()">
+      <button class="btn-outline" (click)="resetFormulario()">
         <i class="bi bi-arrow-counterclockwise"></i>
       </button>
     </div>

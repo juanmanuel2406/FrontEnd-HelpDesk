@@ -31,11 +31,21 @@ export class OlvideContrasenia {
     }
 
     this.cargando = true;
-    setTimeout(() => {
-      this.cargando = false;
-      this.enviado = true;
-      this.mostrarNotificacion('success', 'Si el correo existe, recibirás instrucciones para recuperar tu contraseña.');
-    }, 1500);
+    this.service.ForgotPassword({ email: this.email }).subscribe({
+      next: (res: any) => {
+        this.cargando = false;
+        if (res.estado) {
+          this.enviado = true;
+          this.mostrarNotificacion('success', res.mensaje || 'Si el correo existe, recibirás instrucciones para recuperar tu contraseña.');
+        } else {
+          this.mostrarNotificacion('danger', res.mensaje || 'Error al procesar la solicitud.');
+        }
+      },
+      error: () => {
+        this.cargando = false;
+        this.mostrarNotificacion('danger', 'Error al conectar con el servidor.');
+      }
+    });
   }
 
   volver(): void {

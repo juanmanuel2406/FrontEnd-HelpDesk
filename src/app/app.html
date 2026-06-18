@@ -21,40 +21,8 @@
           <button class="btn-nav-primary" routerLink="/registro">Crear Cuenta</button>
         </ng-container>
         <ng-container *ngIf="estaLogueado">
-          <div class="notif-panel-wrapper">
-            <button class="notif-bell-btn" (click)="togglePanelNotificaciones($event)">
-              <i class="bi bi-bell-fill"></i>
-              <span class="notif-badge" *ngIf="notificacionesNoLeidas.length > 0">{{ notificacionesNoLeidas.length }}</span>
-            </button>
-            <div class="notif-panel" *ngIf="mostrarPanelNotificaciones">
-              <div class="notif-panel-header">
-                <h4>Notificaciones</h4>
-                <button class="notif-clear-btn" (click)="marcarNotificacionesLeidas(); mostrarPanelNotificaciones = false" *ngIf="notificacionesAsignadas.length > 0">
-                  <i class="bi bi-check-all"></i>
-                </button>
-              </div>
-              <div class="notif-panel-body">
-                <div *ngIf="notificacionesAsignadas.length === 0" class="notif-empty">
-                  <i class="bi bi-bell-slash"></i>
-                  <span>Sin notificaciones</span>
-                </div>
-                <div *ngFor="let n of notificacionesAsignadas" class="notif-item" [class.notif-unread]="!notificacionesVistas.has(n.id)">
-                  <div class="notif-item-icon">
-                    <i class="bi bi-ticket-fill"></i>
-                  </div>
-                  <div class="notif-item-content">
-                    <div class="notif-item-title">Ticket #{{ n.id }} asignado</div>
-                    <div class="notif-item-desc">{{ n.title }}</div>
-                    <div class="notif-item-meta">{{ fechaLabel(n.createdAt) }}</div>
-                  </div>
-                  <span class="badge-prioridad notif-priority" [ngClass]="'prioridad-' + n.priority">{{ prioridadLabel(n.priority) }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
           <div class="user-avatar-wrapper" (click)="toggleDrawer($event)">
             <div class="user-avatar" [style.background]="avatarColor(usuario)">{{ inicialUsuario }}</div>
-            <span class="avatar-status-dot" [class.available]="userData?.availability === 'available'" [class.busy]="userData?.availability !== 'available'"></span>
           </div>
           <button class="btn-logout" (click)="cerrarSesion()">
             <i class="bi bi-box-arrow-right me-1"></i> Salir
@@ -63,22 +31,6 @@
       </div>
     </div>
   </nav>
-
-  <!-- ===== INVITACIÓN PENDIENTE BANNER ===== -->
-  <div *ngIf="invitacionPendiente" class="invite-banner">
-    <div class="invite-banner-content">
-      <i class="bi bi-envelope-paper-fill me-2"></i>
-      <span>Tenés una invitación pendiente para unirte al equipo <strong>{{ invitacionPendiente.teamName }}</strong></span>
-    </div>
-    <div class="invite-banner-actions">
-      <button class="btn-invite-accept" (click)="aceptarInvitacion()">
-        <i class="bi bi-check-lg"></i> Aceptar
-      </button>
-      <button class="btn-invite-reject" (click)="rechazarInvitacion()">
-        <i class="bi bi-x-lg"></i> Rechazar
-      </button>
-    </div>
-  </div>
 
   <div *ngIf="notificacion" class="notificacion-global" [ngClass]="'notificacion-' + notificacion.tipo">
     <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
@@ -102,19 +54,25 @@
   <div *ngIf="estaLogueado" class="logged-in-layout">
     <aside class="sidebar">
       <nav class="sidebar-nav">
+        <a class="sidebar-item" [class.active]="sidebarActiva === 'dashboard'" (click)="seleccionarOpcion('dashboard')">
+          <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
         <a class="sidebar-item" *ngIf="!esViewer" [class.active]="sidebarActiva === 'crear-ticket'" (click)="seleccionarOpcion('crear-ticket')">
           <i class="bi bi-plus-circle me-2"></i> Crear Ticket
         </a>
         <a class="sidebar-item" [class.active]="sidebarActiva === 'tus-tickets'" (click)="seleccionarOpcion('tus-tickets')">
           <i class="bi bi-ticket me-2"></i> Tus Tickets
         </a>
-        <a class="sidebar-item" *ngIf="!esViewer" [class.active]="sidebarActiva === 'mi-equipo'" (click)="seleccionarOpcion('mi-equipo')">
-          <i class="bi bi-people me-2"></i> Mi Equipo
-        </a>
       </nav>
     </aside>
 
     <main class="main-content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div *ngIf="sidebarActiva === 'dashboard'" class="content-section">
+        <app-dashboard></app-dashboard>
+      </div>
+
       <!-- ===== CREAR / EDITAR TICKET ===== -->
       <div *ngIf="sidebarActiva === 'crear-ticket'" class="content-section">
         <h1 class="content-title">{{ editMode ? 'Editar ticket' : 'Crear un nuevo ticket' }}</h1>
@@ -126,16 +84,8 @@
             <p class="form-card-subtitle">{{ editMode ? 'Modificá los datos y guardá los cambios' : 'Complete los campos del formulario' }}</p>
           </div>
           <div class="form-card-body">
-            <div class="form-row-3">
-              <div class="form-group wide">
-                <input type="text" class="form-input" placeholder="Resumen del problema" [(ngModel)]="createForm.title" />
-              </div>
-              <div class="form-group">
-                <input type="text" class="form-input" value="Pendiente" disabled />
-              </div>
-              <div class="form-group">
-                <input type="text" class="form-input" value="—" disabled />
-              </div>
+            <div class="form-group">
+              <input type="text" class="form-input" placeholder="Resumen del problema" [(ngModel)]="createForm.title" />
             </div>
 
             <div class="form-group">
@@ -144,15 +94,7 @@
 
             <div class="form-row-2">
               <div class="form-group">
-                <div class="select-wrapper">
-                  <select class="form-input" [(ngModel)]="createForm.teamId">
-                    <option [value]="null" disabled selected>Seleccione un equipo</option>
-                    <option *ngFor="let team of teams" [value]="team.id">{{ team.name }}</option>
-                  </select>
-                  <i class="bi bi-chevron-down select-arrow"></i>
-                </div>
-              </div>
-              <div class="form-group">
+                <label class="form-label">Prioridad</label>
                 <div class="select-wrapper">
                   <select class="form-input" [(ngModel)]="createForm.priority">
                     <option value="low">Baja</option>
@@ -162,18 +104,9 @@
                   <i class="bi bi-chevron-down select-arrow"></i>
                 </div>
               </div>
-            </div>
-
-            <!-- Campo Asignado - solo Admin/Agent, miembros del equipo seleccionado -->
-            <div class="form-group mb-3" *ngIf="puedeAsignarTicket && createForm.teamId">
-              <div class="select-wrapper">
-                <select class="form-input" [(ngModel)]="createForm.assignedToId">
-                  <option [value]="null">Sin asignar (cola general)</option>
-                  <option *ngFor="let m of miembrosDelAreaSeleccionada" [value]="m.userId || m.id">
-                    {{ m.fullname || m.username }}
-                  </option>
-                </select>
-                <i class="bi bi-chevron-down select-arrow"></i>
+              <div class="form-group">
+                <label class="form-label">Estado</label>
+                <input type="text" class="form-input" [value]="editMode ? estadoLabel(ticketSeleccionado?.status) : 'Pendiente'" disabled />
               </div>
             </div>
 
@@ -186,35 +119,6 @@
                 <button class="btn-crear btn-cancelar" *ngIf="editMode" (click)="resetForm()">
                   <i class="bi bi-x-lg"></i> CANCELAR
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== TIMELINE EN EDICIÓN ===== -->
-      <div *ngIf="sidebarActiva === 'crear-ticket' && editMode && ticketSeleccionado" class="content-section mt-4">
-        <div class="form-card">
-          <div class="form-card-header">
-            <h3 class="form-card-title">LÍNEA DE TIEMPO</h3>
-            <p class="form-card-subtitle">Actividad registrada en el ticket</p>
-          </div>
-          <div class="form-card-body">
-            <div *ngIf="ticketHistory.length === 0" class="text-center p-4 text-muted">
-              <i class="bi bi-clock-history d-block mb-2" style="font-size: 2rem;"></i>
-              <p>No hay actividad registrada todavía.</p>
-            </div>
-            <div class="timeline" *ngIf="ticketHistory.length > 0">
-              <div class="timeline-item" *ngFor="let h of ticketHistory">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <div class="timeline-header">
-                    <span class="avatar-mini avatar-xs" [style.background]="avatarColor(h.userName)">{{ inicialDe(h.userName) }}</span>
-                    <strong>{{ h.userName }}</strong>
-                    <span class="timeline-date">{{ fechaLabel(h.createdAt) }}</span>
-                  </div>
-                  <p class="timeline-desc">{{ h.action }} {{ h.description }}</p>
-                </div>
               </div>
             </div>
           </div>
@@ -248,6 +152,7 @@
           <span class="progress-porcentaje">{{ progreso }}%</span>
         </div>
 
+        <!-- ENVIADOS -->
         <div class="form-card" *ngIf="tabTickets === 'enviados'">
           <div class="form-card-header">
             <h3 class="form-card-title">ENVIADOS POR MÍ</h3>
@@ -271,7 +176,6 @@
                     <th>Título</th>
                     <th>Estado</th>
                     <th>Prioridad</th>
-                    <th>Autor</th>
                     <th>Asignado</th>
                     <th>Fecha alta</th>
                     <th>Acciones</th>
@@ -282,8 +186,8 @@
                     <td class="td-id">{{ t.id }}</td>
                     <td class="td-title">{{ t.title }}</td>
                     <td>
-                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : 'badge-pendiente'">
-                        <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
+                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : t.status === 'resolved' ? 'badge-completado' : t.status === 'in_progress' ? 'badge-pendiente' : 'badge-pendiente'">
+                        <i class="bi" [ngClass]="t.status === 'closed' || t.status === 'resolved' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
                         {{ estadoLabel(t.status) }}
                       </span>
                     </td>
@@ -291,22 +195,19 @@
                       <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
                     </td>
                     <td>
-                      <div class="avatar-mini" [style.background]="avatarColor(t.createdByName)" title="{{ t.createdByName }}">{{ inicialDe(t.createdByName) }}</div>
-                    </td>
-                    <td>
-                      <div class="avatar-mini" *ngIf="t.assignedToName" [style.background]="avatarColor(t.assignedToName)" title="{{ t.assignedToName }}">{{ inicialDe(t.assignedToName) }}</div>
-                      <span *ngIf="!t.assignedToName" class="text-muted">—</span>
+                      <div class="avatar-mini" *ngIf="nombreAsignado(t)" [style.background]="avatarColor(nombreAsignado(t))" [title]="nombreAsignado(t)">{{ inicialDe(nombreAsignado(t)) }}</div>
+                      <span *ngIf="!nombreAsignado(t)" class="text-muted">—</span>
                     </td>
                     <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
                     <td>
-                      <button class="btn-action btn-action-edit" *ngIf="puedeEditarBorrar" (click)="iniciarEdicion(t)" title="Editar">
+                      <button class="btn-action btn-action-edit" *ngIf="puedeCrearEditarBorrar" (click)="iniciarEdicion(t)" title="Editar">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button class="btn-action btn-action-delete" *ngIf="puedeEditarBorrar" (click)="eliminarTicket(t.id)" title="Eliminar">
+                      <button class="btn-action btn-action-delete" *ngIf="puedeCrearEditarBorrar" (click)="eliminarTicket(t.id)" title="Eliminar">
                         <i class="bi bi-trash"></i>
                       </button>
-                      <button class="btn-action btn-action-view" (click)="verHistorial(t)" title="Historial">
-                        <i class="bi bi-clock-history"></i>
+                      <button class="btn-action btn-action-view" (click)="verDetalle(t)" title="Detalle">
+                        <i class="bi bi-eye"></i>
                       </button>
                     </td>
                   </tr>
@@ -316,10 +217,11 @@
           </div>
         </div>
 
+        <!-- RECIBIDOS -->
         <div class="form-card" *ngIf="tabTickets === 'recibidos'">
           <div class="form-card-header">
             <h3 class="form-card-title">RECIBIDOS / ASIGNADOS</h3>
-            <p class="form-card-subtitle">Tickets asignados a vos o a tu equipo</p>
+            <p class="form-card-subtitle">Tickets asignados a vos</p>
           </div>
           <div class="form-card-body">
             <div *ngIf="ticketsRecibidos.length === 0">
@@ -336,8 +238,7 @@
                     <th>Título</th>
                     <th>Estado</th>
                     <th>Prioridad</th>
-                    <th>Autor</th>
-                    <th>Asignado</th>
+                    <th>Creador</th>
                     <th>Fecha alta</th>
                     <th>Acción</th>
                   </tr>
@@ -347,8 +248,8 @@
                     <td class="td-id">{{ t.id }}</td>
                     <td class="td-title">{{ t.title }}</td>
                     <td>
-                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : 'badge-pendiente'">
-                        <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
+                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : t.status === 'resolved' ? 'badge-completado' : t.status === 'in_progress' ? 'badge-pendiente' : 'badge-pendiente'">
+                        <i class="bi" [ngClass]="t.status === 'closed' || t.status === 'resolved' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
                         {{ estadoLabel(t.status) }}
                       </span>
                     </td>
@@ -356,11 +257,7 @@
                       <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
                     </td>
                     <td>
-                      <div class="avatar-mini" [style.background]="avatarColor(t.createdByName)" title="{{ t.createdByName }}">{{ inicialDe(t.createdByName) }}</div>
-                    </td>
-                    <td>
-                      <div class="avatar-mini" *ngIf="t.assignedToName" [style.background]="avatarColor(t.assignedToName)" title="{{ t.assignedToName }}">{{ inicialDe(t.assignedToName) }}</div>
-                      <span *ngIf="!t.assignedToName" class="text-muted">—</span>
+                      <div class="avatar-mini" [style.background]="avatarColor(nombreCreador(t))" [title]="nombreCreador(t)">{{ inicialDe(nombreCreador(t)) }}</div>
                     </td>
                     <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
                     <td>
@@ -371,8 +268,8 @@
                         <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-arrow-counterclockwise' : 'bi-check-lg'"></i>
                         {{ t.status === 'closed' ? 'Reabrir' : 'Completar' }}
                       </button>
-                      <button class="btn-action btn-action-view" (click)="verHistorial(t)" title="Historial">
-                        <i class="bi bi-clock-history"></i>
+                      <button class="btn-action btn-action-view" (click)="verDetalle(t)" title="Detalle">
+                        <i class="bi bi-eye"></i>
                       </button>
                     </td>
                   </tr>
@@ -383,158 +280,35 @@
         </div>
       </div>
 
-      <!-- ===== MI EQUIPO ===== -->
-      <div *ngIf="sidebarActiva === 'mi-equipo'" class="content-section">
-        <h1 class="content-title">Mi Equipo</h1>
-        <p class="content-subtitle">Administrá agentes, equipos e invitaciones</p>
-
-        <div class="nav nav-pills nav-fill bg-white p-2 mb-3 rounded shadow-sm border">
-          <button class="nav-link fw-bold text-dark rounded" [class.active]="tabEquipo === 'agentes'" [class.bg-primary]="tabEquipo === 'agentes'" [class.text-white]="tabEquipo === 'agentes'" (click)="tabEquipo = 'agentes'">
-            <i class="bi bi-person-badge me-1"></i> Agentes
-            <span class="tab-count">{{ usuarios.length }}</span>
-          </button>
-          <button class="nav-link fw-bold text-dark rounded" [class.active]="tabEquipo === 'teams'" [class.bg-primary]="tabEquipo === 'teams'" [class.text-white]="tabEquipo === 'teams'" (click)="tabEquipo = 'teams'">
-            <i class="bi bi-diagram-3 me-1"></i> Equipos
-            <span class="tab-count">{{ teams.length }}</span>
-          </button>
-        </div>
-
-        <!-- TAB AGENTES -->
-        <div class="form-card" *ngIf="tabEquipo === 'agentes'">
-          <div class="form-card-header d-flex justify-content-between align-items-center">
-            <div>
-              <h3 class="form-card-title">USUARIOS DEL SISTEMA</h3>
-              <p class="form-card-subtitle">Agentes registrados en la plataforma</p>
-            </div>
-            <button class="btn-crear" (click)="abrirInviteModal()" *ngIf="esAdmin">
-              <i class="bi bi-person-plus me-1"></i> + Invitar Agente
-            </button>
-          </div>
-          <div class="form-card-body">
-            <div *ngIf="usuarios.length === 0" class="text-center p-4 text-muted">
-              <i class="bi bi-people d-block mb-2" style="font-size: 2.5rem;"></i>
-              <p>No hay usuarios cargados.</p>
-            </div>
-            <div class="table-responsive" *ngIf="usuarios.length > 0">
-              <table class="tickets-table">
-                <thead>
-                  <tr>
-                    <th>Usuario</th>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                    <th>Disponibilidad</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let u of usuarios">
-                    <td>
-                      <div class="d-flex align-items-center gap-2">
-                        <div class="avatar-mini" [style.background]="avatarColor(u.username)">{{ inicialDe(u.username) }}</div>
-                        {{ u.username }}
-                      </div>
-                    </td>
-                    <td>{{ u.fullname }}</td>
-                    <td>{{ u.email }}</td>
-                    <td>
-                      <select class="form-input form-input-sm" *ngIf="esAdmin" [value]="u.role" (change)="cambiarRol(u.id, $any($event.target).value)">
-                        <option value="admin">Admin</option>
-                        <option value="agent">Agent</option>
-                        <option value="viewer">Viewer</option>
-                      </select>
-                      <span class="badge-role" *ngIf="!esAdmin" [ngClass]="u.role === 'admin' ? 'badge-admin' : u.role === 'agent' ? 'badge-agent' : 'badge-viewer'">{{ u.role }}</span>
-                    </td>
-                    <td>
-                      <span class="badge-estado badge-toggle" [ngClass]="u.availability === 'available' ? 'badge-completado' : 'badge-pendiente'"
-                            [title]="(u.id === userData?.userId || esAdmin) ? 'Click para cambiar disponibilidad' : ''"
-                            (click)="u.id === userData?.userId ? toggleMiDisponibilidad() : (esAdmin ? cambiarDisponibilidad(u.id, u.availability === 'available' ? 'busy' : 'available') : null)">
-                        <i class="bi" [ngClass]="u.availability === 'available' ? 'bi-check-circle-fill' : 'bi-clock-fill'"></i>
-                        {{ u.availability === 'available' ? 'Aceptando Tickets' : 'Ocupado' }}
-                        <i class="bi bi-arrow-repeat ms-1 small" *ngIf="u.id === userData?.userId || esAdmin"></i>
-                      </span>
-                    </td>
-                    <td>
-                      <span *ngIf="u.active" class="badge-estado badge-completado">Activo</span>
-                      <span *ngIf="!u.active" class="d-flex flex-column gap-1">
-                        <span class="badge-estado badge-pendiente">Invitación enviada</span>
-                        <button class="btn-reminder" (click)="reenviarInvitacion(u.email)"><i class="bi bi-send me-1"></i>Reenviar recordatorio</button>
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB TEAMS -->
-        <div class="form-card" *ngIf="tabEquipo === 'teams'">
-          <div class="form-card-header d-flex justify-content-between align-items-center">
-            <div>
-              <h3 class="form-card-title">EQUIPOS DE TRABAJO</h3>
-              <p class="form-card-subtitle">Agrupá agentes por equipos</p>
-            </div>
-            <button class="btn-crear" (click)="abrirTeamModal()" *ngIf="esAdmin">
-              <i class="bi bi-plus-lg me-1"></i> Nuevo Equipo
-            </button>
-          </div>
-          <div class="form-card-body">
-            <div *ngIf="teams.length === 0" class="text-center p-4 text-muted">
-              <i class="bi bi-diagram-3 d-block mb-2" style="font-size: 2.5rem;"></i>
-              <p>No hay equipos creados.</p>
-            </div>
-            <div *ngFor="let team of teams" class="team-card mb-3">
-              <div class="team-card-header">
-                <h4 class="team-card-name"><i class="bi bi-people-fill me-2"></i>{{ team.name }}</h4>
-                <button class="btn-action btn-action-edit" *ngIf="esAdmin" (click)="abrirAddMemberModal(team.id)" title="Agregar miembro">
-                  <i class="bi bi-person-plus"></i> Agregar
-                </button>
-              </div>
-              <div class="team-card-body">
-                <div *ngIf="getTeamMembers(team.id).length === 0" class="text-muted small p-2">
-                  Sin miembros asignados.
-                </div>
-                <div class="d-flex flex-wrap gap-2" *ngIf="getTeamMembers(team.id).length > 0">
-                  <div class="team-member-chip" *ngFor="let m of getTeamMembers(team.id)">
-                    <div class="avatar-mini avatar-xs" [style.background]="avatarColor(m.username || m.fullname)">{{ inicialDe(m.username || m.fullname) }}</div>
-                    <span>{{ m.username || m.fullname }}</span>
-                    <i class="bi bi-x-circle-fill team-member-remove" *ngIf="esAdmin" (click)="quitarMiembroTeam(team.id, m.userId || m.id)" title="Quitar"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== HISTORIAL TICKET ===== -->
-      <div *ngIf="sidebarActiva === 'historial-ticket' && ticketSeleccionado" class="content-section">
-        <h1 class="content-title">Historial del Ticket #{{ ticketSeleccionado.id }}</h1>
+      <!-- ===== DETALLE TICKET ===== -->
+      <div *ngIf="sidebarActiva === 'detalle-ticket' && ticketSeleccionado" class="content-section">
+        <h1 class="content-title">Detalle del Ticket #{{ ticketSeleccionado.id }}</h1>
         <p class="content-subtitle">{{ ticketSeleccionado.title }}</p>
 
-        <div class="form-card mb-3">
+        <div class="form-card">
           <div class="form-card-header">
-            <h3 class="form-card-title">DETALLE DEL TICKET</h3>
+            <h3 class="form-card-title">INFORMACIÓN DEL TICKET</h3>
           </div>
           <div class="form-card-body">
             <div class="row">
               <div class="col-6">
-                <p><strong>Autor:</strong> 
-                  <span class="avatar-mini avatar-xs" [style.background]="avatarColor(ticketSeleccionado.createdByName)">{{ inicialDe(ticketSeleccionado.createdByName) }}</span>
-                  {{ ticketSeleccionado.createdByName }}
+                <p><strong>Creador:</strong> 
+                  <span class="avatar-mini avatar-xs" [style.background]="avatarColor(nombreCreador(ticketSeleccionado))">{{ inicialDe(nombreCreador(ticketSeleccionado)) }}</span>
+                  {{ nombreCreador(ticketSeleccionado) }}
                 </p>
+                <p><strong>Email:</strong> {{ ticketSeleccionado.createdBy?.email || '—' }}</p>
                 <p><strong>Estado:</strong> {{ estadoLabel(ticketSeleccionado.status) }}</p>
               </div>
               <div class="col-6">
                 <p><strong>Asignado:</strong> 
-                  <span *ngIf="ticketSeleccionado.assignedToName">
-                    <span class="avatar-mini avatar-xs" [style.background]="avatarColor(ticketSeleccionado.assignedToName)">{{ inicialDe(ticketSeleccionado.assignedToName) }}</span>
-                    {{ ticketSeleccionado.assignedToName }}
+                  <span *ngIf="nombreAsignado(ticketSeleccionado)">
+                    <span class="avatar-mini avatar-xs" [style.background]="avatarColor(nombreAsignado(ticketSeleccionado))">{{ inicialDe(nombreAsignado(ticketSeleccionado)) }}</span>
+                    {{ nombreAsignado(ticketSeleccionado) }}
                   </span>
-                  <span *ngIf="!ticketSeleccionado.assignedToName" class="text-muted">—</span>
+                  <span *ngIf="!nombreAsignado(ticketSeleccionado)" class="text-muted">—</span>
                 </p>
                 <p><strong>Prioridad:</strong> {{ prioridadLabel(ticketSeleccionado.priority) }}</p>
+                <p><strong>Fecha:</strong> {{ fechaLabel(ticketSeleccionado.createdAt) }}</p>
               </div>
             </div>
             <p><strong>Descripción:</strong></p>
@@ -542,37 +316,13 @@
           </div>
         </div>
 
-        <div class="form-card">
-          <div class="form-card-header">
-            <h3 class="form-card-title">LÍNEA DE TIEMPO</h3>
-            <p class="form-card-subtitle">Actividad registrada en el ticket</p>
-          </div>
-          <div class="form-card-body">
-            <div *ngIf="ticketHistory.length === 0" class="text-center p-4 text-muted">
-              <i class="bi bi-clock-history d-block mb-2" style="font-size: 2rem;"></i>
-              <p>No hay actividad registrada todavía.</p>
-            </div>
-            <div class="timeline" *ngIf="ticketHistory.length > 0">
-              <div class="timeline-item" *ngFor="let h of ticketHistory">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <div class="timeline-header">
-                    <span class="avatar-mini avatar-xs" [style.background]="avatarColor(h.userName)">{{ inicialDe(h.userName) }}</span>
-                    <strong>{{ h.userName }}</strong>
-                    <span class="timeline-date">{{ fechaLabel(h.createdAt) }}</span>
-                  </div>
-                  <p class="timeline-desc">{{ h.action }} {{ h.description }}</p>
-                </div>
-              </div>
-            </div>
-            <div class="mt-3">
-              <button class="btn-crear" (click)="seleccionarOpcion('tus-tickets')">
-                <i class="bi bi-arrow-left me-1"></i> Volver a Tickets
-              </button>
-            </div>
-          </div>
+        <div class="mt-3">
+          <button class="btn-crear" (click)="seleccionarOpcion('tus-tickets')">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Tickets
+          </button>
         </div>
       </div>
+
     </main>
   </div>
 
@@ -593,126 +343,10 @@
         <span class="badge-role" [ngClass]="rolUsuario === 'admin' ? 'badge-admin' : rolUsuario === 'agent' ? 'badge-agent' : 'badge-viewer'">{{ rolUsuario }}</span>
       </div>
 
-      <div class="profile-availability-toggle" *ngIf="!esViewer">
-        <span class="badge-estado badge-toggle" [ngClass]="userData?.availability === 'available' ? 'badge-completado' : 'badge-pendiente'" (click)="toggleMiDisponibilidad()">
-          <i class="bi" [ngClass]="userData?.availability === 'available' ? 'bi-check-circle-fill' : 'bi-clock-fill'"></i>
-          {{ userData?.availability === 'available' ? 'Aceptando Tickets' : 'Ocupado' }}
-          <i class="bi bi-arrow-repeat ms-1 small"></i>
-        </span>
-      </div>
-
-      <div class="profile-section-divider"></div>
-      <div class="profile-section-title">Equipos</div>
-      <div class="profile-teams">
-        <div *ngIf="userTeamsList.length === 0" class="text-muted small">Sin equipos asignados.</div>
-        <div *ngFor="let team of userTeamsList" class="profile-team-item">
-          <span class="profile-team-dot" [style.background]="avatarColor(team.name)"></span>
-          <span>{{ team.name }}</span>
-        </div>
-      </div>
-
       <div class="profile-section-divider"></div>
       <button class="btn-logout drawer-logout" (click)="cerrarSesion()">
         <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
       </button>
-    </div>
-  </div>
-
-  <!-- ===== MODAL INVITAR AGENTE ===== -->
-  <div class="modal-overlay" *ngIf="showInviteModal" (click)="cerrarInviteModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Invitar Agente</h3>
-        <button class="modal-close" (click)="cerrarInviteModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="form-label">Correo electrónico</label>
-          <input type="email" class="form-input" placeholder="agente@ejemplo.com" [(ngModel)]="inviteEmail" />
-        </div>
-        <div class="form-group mb-3">
-          <label class="form-label">Rol</label>
-          <div class="select-wrapper">
-            <select class="form-input" [(ngModel)]="inviteRole">
-              <option value="agent">Agent</option>
-              <option value="viewer">Viewer</option>
-              <option value="admin">Admin</option>
-            </select>
-            <i class="bi bi-chevron-down select-arrow"></i>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Asignar a equipo (opcional)</label>
-          <div class="select-wrapper">
-            <select class="form-input" [(ngModel)]="inviteTeamId">
-              <option [value]="null">Sin equipo</option>
-              <option *ngFor="let team of teams" [value]="team.id">{{ team.name }}</option>
-            </select>
-            <i class="bi bi-chevron-down select-arrow"></i>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-crear btn-cancelar" (click)="cerrarInviteModal()">Cancelar</button>
-        <button class="btn-crear" (click)="enviarInvitacion()">Enviar Invitación</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== MODAL NUEVO EQUIPO ===== -->
-  <div class="modal-overlay" *ngIf="showTeamModal" (click)="cerrarTeamModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Nuevo Equipo</h3>
-        <button class="modal-close" (click)="cerrarTeamModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="form-label">Nombre del equipo</label>
-          <input type="text" class="form-input" placeholder="Ej: Soporte Técnico" [(ngModel)]="newTeamName" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Agregar miembros (opcional)</label>
-          <div class="member-select-list">
-            <div class="member-select-item" *ngFor="let u of usuarios">
-              <label class="d-flex align-items-center gap-2 w-100">
-                <input type="checkbox" [value]="u.id" (change)="toggleNewTeamMember(u.id)" />
-                <span class="avatar-mini avatar-xs" [style.background]="avatarColor(u.username)">{{ inicialDe(u.username) }}</span>
-                <span class="member-select-name">{{ u.fullname || u.username }}</span>
-                <span class="member-select-email">{{ u.email }}</span>
-              </label>
-            </div>
-            <div *ngIf="usuarios.length === 0" class="text-muted small p-2">No hay usuarios disponibles.</div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-crear btn-cancelar" (click)="cerrarTeamModal()">Cancelar</button>
-        <button class="btn-crear" (click)="crearTeam()">Crear Equipo</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== MODAL AGREGAR MIEMBRO ===== -->
-  <div class="modal-overlay" *ngIf="showAddMemberModal" (click)="cerrarAddMemberModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Agregar Miembro al Equipo</h3>
-        <button class="modal-close" (click)="cerrarAddMemberModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Seleccionar usuario</label>
-          <select class="form-input" [(ngModel)]="addMemberUserId">
-            <option [value]="null" disabled>Seleccioná un usuario</option>
-            <option *ngFor="let u of usuarios" [value]="u.id">{{ u.fullname || u.username }} ({{ u.email }})</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-crear btn-cancelar" (click)="cerrarAddMemberModal()">Cancelar</button>
-        <button class="btn-crear" (click)="agregarMiembroTeam()">Agregar</button>
-      </div>
     </div>
   </div>
 

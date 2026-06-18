@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { TicketService } from './services-ticket/ticket-service';
+import { TicketService, TicketCreateDTO, TicketUpdateDTO } from './services-ticket/ticket-service';
 
 @Component({
   selector: 'app-root',
@@ -11,48 +11,22 @@ import { TicketService } from './services-ticket/ticket-service';
 })
 export class App implements OnInit {
   estaLogueado: boolean = false;
-  sidebarActiva: string = 'tus-tickets';
+  sidebarActiva: string = 'dashboard';
   usuario: string = '';
   mostrarDrawer: boolean = false;
   userData: any = null;
   rolUsuario: string = 'viewer';
-  userTeamsList: any[] = [];
 
   tickets: any[] = [];
   notificacion: { tipo: string; mensaje: string } | null = null;
   private timeoutId: any = null;
 
-  createForm: any = { title: '', description: '', priority: 'medium', teamId: null };
+  createForm: any = { title: '', description: '', priority: 'medium' };
   editMode: boolean = false;
   editTicketId: number | null = null;
   tabTickets: string = 'enviados';
 
   ticketSeleccionado: any = null;
-  ticketHistory: any[] = [];
-
-  // === Mi Equipo ===
-  tabEquipo: string = 'agentes';
-  usuarios: any[] = [];
-  teams: any[] = [];
-  teamMembersMap: any = {};
-  selectedTeamId: number | null = null;
-  showInviteModal: boolean = false;
-  inviteEmail: string = '';
-  inviteTeamId: number | null = null;
-  inviteRole: string = 'agent';
-  showTeamModal: boolean = false;
-  newTeamName: string = '';
-  newTeamMemberIds: number[] = [];
-  showAddMemberModal: boolean = false;
-  addMemberUserId: number | null = null;
-
-  // === Invitación pendiente ===
-  invitacionPendiente: any = null;
-
-  // === Notificaciones de asignación ===
-  notificacionesAsignadas: any[] = [];
-  mostrarPanelNotificaciones: boolean = false;
-  notificacionesVistas: Set<number> = new Set();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -76,7 +50,7 @@ export class App implements OnInit {
     return this.rolUsuario === 'viewer';
   }
 
-  get puedeEditarBorrar(): boolean {
+  get puedeCrearEditarBorrar(): boolean {
     return this.esAdmin || this.esAgent;
   }
 
@@ -93,22 +67,18 @@ export class App implements OnInit {
   }
 
   get ticketsVisibles(): any[] {
-    return this.tickets.filter(t => !t.isDeleted);
+    return this.tickets.filter((t: any) => !t.isDeleted);
   }
 
   get ticketsEnviados(): any[] {
     if (!this.userData) return [];
-    return this.ticketsVisibles.filter(t => t.createdById === this.userData.userId);
+    return this.ticketsVisibles.filter((t: any) => t.createdById === this.userData.userId);
   }
 
   get ticketsRecibidos(): any[] {
     if (!this.userData) return [];
     const userId = this.userData.userId;
-    const userTeamIds = this.obtenerTeamIdsUsuario();
-    return this.ticketsVisibles.filter(t =>
-      t.assignedToId === userId ||
-      (userTeamIds.includes(t.teamId) && !t.assignedToId)
-    );
+    return this.ticketsVisibles.filter((t: any) => t.assignedToId === userId);
   }
 
   get totalEnviados(): number {
@@ -116,7 +86,7 @@ export class App implements OnInit {
   }
 
   get completados(): number {
-    return this.ticketsEnviados.filter(t => t.status === 'closed').length;
+    return this.ticketsEnviados.filter((t: any) => t.status === 'closed').length;
   }
 
   get progreso(): number {
@@ -124,31 +94,8 @@ export class App implements OnInit {
     return Math.round((this.completados / this.totalEnviados) * 100);
   }
 
-  get notificacionesNoLeidas(): any[] {
-    if (!this.userData) return [];
-    return this.notificacionesAsignadas.filter(n => !this.notificacionesVistas.has(n.id));
-  }
-
-  private obtenerTeamIdsUsuario(): number[] {
-    const ids: number[] = [];
-
-    for (const teamId of Object.keys(this.teamMembersMap)) {
-      const members = this.teamMembersMap[teamId] || [];
-      if (members.some((m: any) => m.userId === this.userData?.userId || m.id === this.userData?.userId)) {
-        ids.push(Number(teamId));
-      }
-    }
-
-    if (this.userTeamsList && this.userTeamsList.length > 0) {
-      for (const team of this.userTeamsList) {
-        const tid = team.id || team.teamId;
-        if (tid && !ids.includes(tid)) {
-          ids.push(tid);
-        }
-      }
-    }
-
-    return ids;
+  get ticketDetail(): any {
+    return this.ticketSeleccionado;
   }
 
   ngOnInit(): void {
@@ -166,74 +113,14 @@ export class App implements OnInit {
       this.userData = raw ? JSON.parse(raw) : null;
       this.rolUsuario = (this.userData?.role || 'viewer').toLowerCase();
       this.cargarTickets();
-      this.cargarUsuarios();
-      this.cargarTeams();
-      this.verificarInvitacionPendiente();
-      this.cargarUserTeams();
     }
     this.cdr.detectChanges();
-  }
-
-  // === INVITACIÓN PENDIENTE (usuario invitado) ===
-  verificarInvitacionPendiente(): void {
-    if (!this.token) return;
-    this.service.getMyPendingInvitation(this.token).subscribe({
-      next: (res: any) => {
-        this.invitacionPendiente = res?.invitacion || null;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.invitacionPendiente = null;
-      }
-    });
-  }
-
-  aceptarInvitacion(): void {
-    if (!this.invitacionPendiente?.id) return;
-    this.service.respondInvitation(this.invitacionPendiente.id, true, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Invitación aceptada. Bienvenido al equipo.');
-          this.invitacionPendiente = null;
-          this.cargarTeams();
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al aceptar la invitación.')
-    });
-  }
-
-  rechazarInvitacion(): void {
-    if (!this.invitacionPendiente?.id) return;
-    this.service.respondInvitation(this.invitacionPendiente.id, false, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Invitación rechazada.');
-          this.invitacionPendiente = null;
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al rechazar la invitación.')
-    });
-  }
-
-  // === USER TEAMS PARA DRAWER ===
-  cargarUserTeams(): void {
-    if (!this.userData?.userId || !this.token) return;
-    this.service.getUserTeams(this.userData.userId, this.token).subscribe({
-      next: (data: any) => {
-        this.userTeamsList = data || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {}
-    });
   }
 
   // === SIDE DRAWER ===
   toggleDrawer(event: Event): void {
     event.stopPropagation();
     this.mostrarDrawer = !this.mostrarDrawer;
-    if (this.mostrarDrawer) {
-      this.cargarUserTeams();
-    }
     this.cdr.detectChanges();
   }
 
@@ -253,124 +140,10 @@ export class App implements OnInit {
     this.service.getTickets(this.token).subscribe({
       next: (data: any) => {
         this.tickets = data || [];
-        this.detectarNuevasAsignaciones();
         this.cdr.detectChanges();
       },
       error: () => this.cdr.detectChanges()
     });
-  }
-
-  private detectarNuevasAsignaciones(): void {
-    if (!this.userData) return;
-    const userId = this.userData.userId;
-    const vistos = this.leerVistosStorage();
-
-    const misAsignados = this.ticketsVisibles.filter(t =>
-      t.assignedToId === userId && !t.isDeleted
-    );
-
-    for (const t of misAsignados) {
-      if (!vistos.has(t.id)) {
-        const yaExiste = this.notificacionesAsignadas.some(n => n.id === t.id);
-        if (!yaExiste) {
-          this.notificacionesAsignadas.unshift({
-            id: t.id,
-            title: t.title,
-            assignedByName: t.assignedToName || 'Sistema',
-            createdAt: t.createdAt,
-            priority: t.priority
-          });
-        }
-      }
-    }
-
-    this.notificacionesAsignadas.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    if (this.notificacionesAsignadas.length > 0) {
-      const reciente = this.notificacionesAsignadas[0];
-      if (!vistos.has(reciente.id)) {
-        this.mostrarNotificacion('info', 'Nuevo ticket asignado: ' + reciente.title);
-      }
-    }
-  }
-
-  private leerVistosStorage(): Set<number> {
-    try {
-      const raw = sessionStorage.getItem('notificacionesVistas');
-      return new Set<number>(raw ? JSON.parse(raw) : []);
-    } catch {
-      return new Set<number>();
-    }
-  }
-
-  private guardarVistosStorage(): void {
-    sessionStorage.setItem('notificacionesVistas', JSON.stringify(Array.from(this.notificacionesVistas)));
-  }
-
-  togglePanelNotificaciones(event: Event): void {
-    event.stopPropagation();
-    this.mostrarPanelNotificaciones = !this.mostrarPanelNotificaciones;
-    if (!this.mostrarPanelNotificaciones) {
-      this.marcarNotificacionesLeidas();
-    }
-    this.cdr.detectChanges();
-  }
-
-  marcarNotificacionesLeidas(): void {
-    for (const n of this.notificacionesAsignadas) {
-      this.notificacionesVistas.add(n.id);
-    }
-    this.guardarVistosStorage();
-    this.cdr.detectChanges();
-  }
-
-  @HostListener('document:click', ['$event'])
-  onClickOutside(event: Event): void {
-    if (this.mostrarPanelNotificaciones) {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.notif-panel-wrapper') && !target.closest('.notif-bell-btn')) {
-        this.mostrarPanelNotificaciones = false;
-        this.marcarNotificacionesLeidas();
-        this.cdr.detectChanges();
-      }
-    }
-  }
-
-  cargarUsuarios(): void {
-    if (!this.token) return;
-    this.service.getUsers(this.token).subscribe({
-      next: (data: any) => {
-        this.usuarios = data || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {}
-    });
-  }
-
-  cargarTeams(): void {
-    if (!this.token) return;
-    this.service.getTeams(this.token).subscribe({
-      next: (data: any) => {
-        this.teams = data || [];
-        this.teams.forEach(t => this.cargarTeamMembers(t.id));
-        this.cdr.detectChanges();
-      },
-      error: () => {}
-    });
-  }
-
-  cargarTeamMembers(teamId: number): void {
-    this.service.getTeamMembers(teamId, this.token).subscribe({
-      next: (data: any) => {
-        this.teamMembersMap[teamId] = data || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {}
-    });
-  }
-
-  getTeamMembers(teamId: number): any[] {
-    return this.teamMembersMap[teamId] || [];
   }
 
   // === NOTIFICACIONES ===
@@ -386,16 +159,10 @@ export class App implements OnInit {
 
   // === TICKET FORM ===
   resetForm(): void {
-    this.createForm = { title: '', description: '', priority: 'medium', teamId: null };
+    this.createForm = { title: '', description: '', priority: 'medium' };
     this.editMode = false;
     this.editTicketId = null;
     this.ticketSeleccionado = null;
-    this.ticketHistory = [];
-  }
-
-  get miembrosDelAreaSeleccionada(): any[] {
-    if (!this.createForm.teamId) return [];
-    return this.getTeamMembers(this.createForm.teamId);
   }
 
   crearTicket(): void {
@@ -403,19 +170,11 @@ export class App implements OnInit {
       this.mostrarNotificacion('danger', 'Completá todos los campos obligatorios.');
       return;
     }
-    const dto: any = {
+    const dto: TicketCreateDTO = {
       title: this.createForm.title.trim(),
       description: this.createForm.description.trim(),
       priority: this.createForm.priority
     };
-
-    if (this.createForm.teamId) {
-      dto.teamId = this.createForm.teamId;
-    }
-
-    if (this.puedeAsignarTicket && this.createForm.assignedToId) {
-      dto.assignedToId = this.createForm.assignedToId;
-    }
 
     this.service.createTicket(dto, this.token).subscribe({
       next: (res: any) => {
@@ -438,20 +197,18 @@ export class App implements OnInit {
     this.createForm = {
       title: ticket.title,
       description: ticket.description,
-      priority: ticket.priority,
-      teamId: ticket.teamId || null
+      priority: ticket.priority
     };
     this.editMode = true;
     this.editTicketId = ticket.id;
     this.ticketSeleccionado = ticket;
-    this.cargarHistorialTicket(ticket.id);
     this.sidebarActiva = 'crear-ticket';
     this.cdr.detectChanges();
   }
 
   guardarEdicion(): void {
     if (!this.editTicketId) return;
-    const dto = {
+    const dto: TicketUpdateDTO = {
       title: this.createForm.title.trim(),
       description: this.createForm.description.trim(),
       priority: this.createForm.priority
@@ -475,10 +232,10 @@ export class App implements OnInit {
 
   eliminarTicket(id: number): void {
     if (!confirm('¿Estás seguro de eliminar este ticket?')) return;
-    this.service.deleteTicket(id, this.token).subscribe({
+    this.service.softDeleteTicket(id, this.token).subscribe({
       next: (res: any) => {
         if (res.estado) {
-          this.tickets = this.tickets.filter(t => t.id !== id);
+          this.tickets = this.tickets.filter((t: any) => t.id !== id);
           this.mostrarNotificacion('success', res.mensaje || 'Ticket eliminado correctamente.');
           this.cdr.detectChanges();
         } else {
@@ -494,7 +251,7 @@ export class App implements OnInit {
 
   toggleEstado(ticket: any): void {
     const nuevoStatus = ticket.status === 'closed' ? 'open' : 'closed';
-    const dto = {
+    const dto: TicketUpdateDTO = {
       title: ticket.title,
       description: ticket.description,
       priority: ticket.priority,
@@ -519,17 +276,13 @@ export class App implements OnInit {
 
   asignarTicket(ticket: any): void {
     if (!this.userData) return;
-    this.service.assignTicket(ticket.id, this.userData.userId, this.token).subscribe({
+    const dto: TicketUpdateDTO = {
+      assignedToId: this.userData.userId
+    };
+    this.service.updateTicket(ticket.id, dto, this.token).subscribe({
       next: (res: any) => {
         if (res.estado) {
           ticket.assignedToId = this.userData.userId;
-          this.notificacionesAsignadas.unshift({
-            id: ticket.id,
-            title: ticket.title,
-            assignedByName: this.userData.fullname || this.userData.username,
-            createdAt: new Date().toISOString(),
-            priority: ticket.priority
-          });
           this.mostrarNotificacion('success', 'Ticket #' + ticket.id + ' asignado correctamente.');
           this.cdr.detectChanges();
         } else {
@@ -546,256 +299,25 @@ export class App implements OnInit {
   puedeAsignarTicketBtn(ticket: any): boolean {
     if (!this.userData || this.esViewer) return false;
     if (ticket.assignedToId) return false;
-    const userTeamIds = this.obtenerTeamIdsUsuario();
-    return userTeamIds.includes(ticket.teamId);
+    return true;
   }
 
-  cargarHistorialTicket(ticketId: number): void {
-    this.service.getTicketHistory(ticketId, this.token).subscribe({
-      next: (data: any) => {
-        this.ticketHistory = data || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.ticketHistory = [];
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  verHistorial(ticket: any): void {
+  verDetalle(ticket: any): void {
     this.ticketSeleccionado = ticket;
-    this.sidebarActiva = 'historial-ticket';
-    this.service.getTicketHistory(ticket.id, this.token).subscribe({
-      next: (data: any) => {
-        this.ticketHistory = data || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.ticketHistory = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.sidebarActiva = 'detalle-ticket';
+    this.cdr.detectChanges();
   }
 
-  // === REFRESCO REACTIVO ===
+  // === REFRESCO ===
   cambiarTabTickets(tab: string): void {
     this.tabTickets = tab;
     this.cargarTickets();
     this.cdr.detectChanges();
   }
 
-  // === ROLES ===
-  cambiarRol(userId: number, newRole: string): void {
-    this.service.updateUserRole(userId, newRole, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Rol actualizado correctamente.');
-          this.cargarUsuarios();
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al actualizar el rol.')
-    });
-  }
-
-  // === DISPONIBILIDAD ===
-  cambiarDisponibilidad(userId: number, newAvailability: string): void {
-    if (!this.token) return;
-    this.service.updateUserAvailability(userId, newAvailability, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Disponibilidad actualizada.');
-          this.cargarUsuarios();
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al actualizar disponibilidad.')
-    });
-  }
-
-  toggleMiDisponibilidad(): void {
-    if (!this.userData) return;
-    const nueva = this.userData.availability === 'available' ? 'busy' : 'available';
-    this.service.updateUserAvailability(this.userData.userId, nueva, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.userData.availability = nueva;
-          sessionStorage.setItem('userData', JSON.stringify(this.userData));
-          this.mostrarNotificacion('success', nueva === 'available' ? 'Ahora aceptás tickets.' : 'Te marcaste como ocupado.');
-          this.cargarUsuarios();
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al actualizar disponibilidad.')
-    });
-  }
-
-  // === INVITACIONES (Admin) ===
-  abrirInviteModal(): void {
-    this.inviteEmail = '';
-    this.inviteTeamId = null;
-    this.inviteRole = 'agent';
-    this.showInviteModal = true;
-  }
-
-  cerrarInviteModal(): void {
-    this.showInviteModal = false;
-  }
-
-  enviarInvitacion(): void {
-    if (!this.inviteEmail) {
-      this.mostrarNotificacion('danger', 'Ingresá un correo electrónico.');
-      return;
-    }
-    this.service.inviteAgent(this.inviteEmail, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          if (this.inviteTeamId && res.userId) {
-            this.service.addTeamMember(this.inviteTeamId, res.userId, this.token).subscribe({
-              next: () => {
-                this.mostrarNotificacion('success', 'Invitación enviada y asignada al equipo.');
-                this.cerrarInviteModal();
-                this.cargarUsuarios();
-              },
-              error: () => {
-                this.mostrarNotificacion('success', 'Invitación enviada (error al asignar equipo).');
-                this.cerrarInviteModal();
-                this.cargarUsuarios();
-              }
-            });
-          } else {
-            this.mostrarNotificacion('success', 'Invitación enviada correctamente.');
-            this.cerrarInviteModal();
-            this.cargarUsuarios();
-          }
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al enviar la invitación.');
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al conectar con el servidor.')
-    });
-  }
-
-  reenviarInvitacion(email: string): void {
-    this.service.resendInvitation(email, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Recordatorio enviado a ' + email);
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al reenviar.');
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al conectar con el servidor.')
-    });
-  }
-
-  // === TEAMS ===
-  abrirTeamModal(): void {
-    this.newTeamName = '';
-    this.newTeamMemberIds = [];
-    this.showTeamModal = true;
-  }
-
-  cerrarTeamModal(): void {
-    this.showTeamModal = false;
-    this.newTeamMemberIds = [];
-  }
-
-  toggleNewTeamMember(userId: number): void {
-    const idx = this.newTeamMemberIds.indexOf(userId);
-    if (idx >= 0) {
-      this.newTeamMemberIds.splice(idx, 1);
-    } else {
-      this.newTeamMemberIds.push(userId);
-    }
-  }
-
-  crearTeam(): void {
-    if (!this.newTeamName) {
-      this.mostrarNotificacion('danger', 'Ingresá un nombre para el equipo.');
-      return;
-    }
-    this.service.createTeam({ name: this.newTeamName }, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          const teamId = res.id || res.teamId;
-          if (teamId && this.newTeamMemberIds.length > 0) {
-            let pendientes = this.newTeamMemberIds.length;
-            for (const uid of this.newTeamMemberIds) {
-              this.service.addTeamMember(teamId, uid, this.token).subscribe({
-                next: () => {
-                  pendientes--;
-                  if (pendientes === 0) {
-                    this.mostrarNotificacion('success', 'Equipo creado con miembros asignados.');
-                    this.cerrarTeamModal();
-                    this.cargarTeams();
-                  }
-                },
-                error: () => {
-                  pendientes--;
-                  if (pendientes === 0) {
-                    this.mostrarNotificacion('success', 'Equipo creado (algunos miembros no se pudieron asignar).');
-                    this.cerrarTeamModal();
-                    this.cargarTeams();
-                  }
-                }
-              });
-            }
-          } else {
-            this.mostrarNotificacion('success', 'Equipo creado correctamente.');
-            this.cerrarTeamModal();
-            this.cargarTeams();
-          }
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al crear el equipo.');
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al conectar con el servidor.')
-    });
-  }
-
-  abrirAddMemberModal(teamId: number): void {
-    this.selectedTeamId = teamId;
-    this.addMemberUserId = null;
-    this.showAddMemberModal = true;
-  }
-
-  cerrarAddMemberModal(): void {
-    this.showAddMemberModal = false;
-    this.selectedTeamId = null;
-  }
-
-  agregarMiembroTeam(): void {
-    if (!this.selectedTeamId || !this.addMemberUserId) {
-      this.mostrarNotificacion('danger', 'Seleccioná un usuario.');
-      return;
-    }
-    this.service.addTeamMember(this.selectedTeamId, this.addMemberUserId, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Miembro agregado correctamente.');
-          this.cerrarAddMemberModal();
-          this.cargarTeamMembers(this.selectedTeamId!);
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al agregar miembro.')
-    });
-  }
-
-  quitarMiembroTeam(teamId: number, userId: number): void {
-    if (!confirm('¿Quitar este miembro del equipo?')) return;
-    this.service.removeTeamMember(teamId, userId, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado) {
-          this.mostrarNotificacion('success', 'Miembro quitado del equipo.');
-          this.cargarTeamMembers(teamId);
-        }
-      },
-      error: () => this.mostrarNotificacion('danger', 'Error al quitar miembro.')
-    });
-  }
-
   // === LABELS ===
   estadoLabel(status: string): string {
-    const map: any = { open: 'Pendiente', closed: 'Realizado', rejected: 'Rechazado' };
+    const map: any = { open: 'Abierto', in_progress: 'En Progreso', resolved: 'Resuelto', closed: 'Cerrado' };
     return map[status] || status;
   }
 
@@ -824,21 +346,21 @@ export class App implements OnInit {
     return (nombre || '?').charAt(0).toUpperCase();
   }
 
+  nombreCreador(ticket: any): string {
+    return ticket.createdBy?.fullname || ticket.createdBy?.username || '—';
+  }
+
+  nombreAsignado(ticket: any): string {
+    return ticket.assignedTo?.fullname || ticket.assignedTo?.username || '';
+  }
+
   // === SESION ===
   cerrarSesion(): void {
     this.estaLogueado = false;
-    this.sidebarActiva = 'tus-tickets';
+    this.sidebarActiva = 'dashboard';
     this.mostrarDrawer = false;
     this.tickets = [];
-    this.usuarios = [];
-    this.teams = [];
-    this.teamMembersMap = {};
     this.ticketSeleccionado = null;
-    this.ticketHistory = [];
-    this.invitacionPendiente = null;
-    this.notificacionesAsignadas = [];
-    this.notificacionesVistas = new Set();
-    this.mostrarPanelNotificaciones = false;
     sessionStorage.removeItem('logueado');
     sessionStorage.removeItem('usuario');
     sessionStorage.removeItem('userData');
@@ -873,11 +395,8 @@ export class App implements OnInit {
       this.cargarTickets();
     } else if (opcion === 'crear-ticket') {
       this.resetForm();
-    } else if (opcion === 'mi-equipo') {
-      this.cargarUsuarios();
-      this.cargarTeams();
-    } else if (opcion === 'historial-ticket') {
-      // keep current ticketSeleccionado
+    } else if (opcion === 'dashboard') {
+      // dashboard refreshes on its own
     }
     this.cerrarDrawer();
     this.cdr.detectChanges();
