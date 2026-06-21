@@ -12,6 +12,7 @@ import { TicketService, TicketCreateDTO, TicketUpdateDTO } from './services-tick
 export class App implements OnInit {
   estaLogueado: boolean = false;
   sidebarActiva: string = 'dashboard';
+  sidebarExpandida: boolean = false;
   usuario: string = '';
   mostrarDrawer: boolean = false;
   userData: any = null;
@@ -25,11 +26,14 @@ export class App implements OnInit {
   editMode: boolean = false;
   editTicketId: number | null = null;
   tabTickets: string = 'enviados';
+  mostrarFormCrear: boolean = false;
+  imagenPerfilUrl: string | null = null;
+  isDarkMode: boolean = true;
 
   ticketSeleccionado: any = null;
 
   constructor(
-    private cdr: ChangeDetectorRef,
+    public cdr: ChangeDetectorRef,
     private router: Router,
     private service: TicketService
   ) {}
@@ -117,6 +121,11 @@ export class App implements OnInit {
     this.cdr.detectChanges();
   }
 
+  toggleTheme(): void {
+    this.isDarkMode = !this.isDarkMode;
+    this.cdr.detectChanges();
+  }
+
   // === SIDE DRAWER ===
   toggleDrawer(event: Event): void {
     event.stopPropagation();
@@ -129,12 +138,22 @@ export class App implements OnInit {
     this.cdr.detectChanges();
   }
 
+  toggleSidebar(event: Event): void {
+    event.stopPropagation();
+    this.sidebarExpandida = !this.sidebarExpandida;
+    this.cdr.detectChanges();
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.cerrarDrawer();
   }
 
   // === TICKETS ===
+  actualizarTickets(): void {
+    this.cargarTickets();
+  }
+
   cargarTickets(): void {
     if (!this.token) return;
     this.service.getTickets(this.token).subscribe({
@@ -163,6 +182,7 @@ export class App implements OnInit {
     this.editMode = false;
     this.editTicketId = null;
     this.ticketSeleccionado = null;
+    this.mostrarFormCrear = false;
   }
 
   crearTicket(): void {
@@ -202,6 +222,7 @@ export class App implements OnInit {
     this.editMode = true;
     this.editTicketId = ticket.id;
     this.ticketSeleccionado = ticket;
+    this.mostrarFormCrear = false;
     this.sidebarActiva = 'crear-ticket';
     this.cdr.detectChanges();
   }
@@ -354,6 +375,20 @@ export class App implements OnInit {
     return ticket.assignedTo?.fullname || ticket.assignedTo?.username || '';
   }
 
+  // === AVATAR FILE ===
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagenPerfilUrl = e.target.result;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   // === SESION ===
   cerrarSesion(): void {
     this.estaLogueado = false;
@@ -394,9 +429,9 @@ export class App implements OnInit {
       this.tabTickets = 'enviados';
       this.cargarTickets();
     } else if (opcion === 'crear-ticket') {
+      this.editMode = false;
       this.resetForm();
     } else if (opcion === 'dashboard') {
-      // dashboard refreshes on its own
     }
     this.cerrarDrawer();
     this.cdr.detectChanges();

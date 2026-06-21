@@ -1,72 +1,55 @@
-<div class="auth-card">
-  <div class="auth-header">
-    <div class="auth-icon">
-      <i class="bi bi-person-plus"></i>
+<div class="d-flex justify-content-center align-items-center vh-100" style="background: #0e0f11;">
+  <div style="width: 100%; max-width: 400px; background: #18191b; border-radius: 12px; padding: 32px;">
+    <div class="text-center mb-4">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(59,130,246,0.12); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <i class="bi bi-person-plus" style="font-size: 1.5rem; color: #60a5fa;"></i>
+      </div>
+      <h2 style="font-size: 1.25rem; font-weight: 600; color: #f4f4f5; margin: 0 0 4px;">Crear Cuenta</h2>
+      <p style="font-size: 0.8125rem; color: #8f9098; margin: 0;">Complet&aacute; tus datos para registrarte</p>
     </div>
-    <h2 class="auth-title">Crear Cuenta</h2>
-    <p class="auth-subtitle">Completá tus datos para registrarte</p>
-  </div>
 
-  <div class="auth-body">
-    <div class="form-group">
-      <label class="form-label">Nombre completo</label>
-      <div class="input-icon-wrapper">
-        <i class="bi bi-person-vcard-fill"></i>
-        <input
-          type="text"
-          class="form-control auth-input"
-          [(ngModel)]="registerDTO.fullname"
-          placeholder="Ej: Juan Pérez"
-        />
+    <div class="form-group mb-3">
+      <label style="display: block; font-size: 0.75rem; font-weight: 500; color: #8f9098; margin-bottom: 6px;">Nombre completo</label>
+      <div style="position: relative;">
+        <i class="bi bi-person-vcard-fill" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #63646b; font-size: 0.875rem;"></i>
+        <input type="text" [(ngModel)]="registerDTO.fullname" placeholder="Ej: Juan P&eacute;rez"
+               style="width: 100%; padding: 10px 12px 10px 36px; background: #131416; border: 1px solid #27282b; border-radius: 8px; color: #f4f4f5; font-size: 0.875rem; outline: none; box-sizing: border-box;" />
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Nombre de usuario</label>
-      <div class="input-icon-wrapper">
-        <i class="bi bi-person-fill"></i>
-        <input
-          type="text"
-          class="form-control auth-input"
-          [(ngModel)]="registerDTO.username"
-          placeholder="Ej: juan123"
-        />
+    <div class="form-group mb-3">
+      <label style="display: block; font-size: 0.75rem; font-weight: 500; color: #8f9098; margin-bottom: 6px;">Nombre de usuario</label>
+      <div style="position: relative;">
+        <i class="bi bi-person-fill" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #63646b; font-size: 0.875rem;"></i>
+        <input type="text" [(ngModel)]="registerDTO.username" placeholder="Ej: juan123"
+               style="width: 100%; padding: 10px 12px 10px 36px; background: #131416; border: 1px solid #27282b; border-radius: 8px; color: #f4f4f5; font-size: 0.875rem; outline: none; box-sizing: border-box;" />
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Correo electrónico</label>
-      <div class="input-icon-wrapper">
-        <i class="bi bi-envelope-fill"></i>
-        <input
-          type="email"
-          class="form-control auth-input"
-          [(ngModel)]="registerDTO.email"
-          placeholder="ejemplo@correo.com"
-        />
+    <div class="form-group mb-3">
+      <label style="display: block; font-size: 0.75rem; font-weight: 500; color: #8f9098; margin-bottom: 6px;">Correo electr&oacute;nico</label>
+      <div style="position: relative;">
+        <i class="bi bi-envelope-fill" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #63646b; font-size: 0.875rem;"></i>
+        <input type="email" [(ngModel)]="registerDTO.email" placeholder="ejemplo@correo.com"
+               style="width: 100%; padding: 10px 12px 10px 36px; background: #131416; border: 1px solid #27282b; border-radius: 8px; color: #f4f4f5; font-size: 0.875rem; outline: none; box-sizing: border-box;" />
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Contraseña</label>
-      <div class="input-icon-wrapper">
-        <i class="bi bi-lock-fill"></i>
-        <input
-          type="password"
-          class="form-control auth-input"
-          [(ngModel)]="registerDTO.password"
-          (input)="onPasswordChange()"
-          (focus)="passwordTouched = true"
-          placeholder="••••••••"
-        />
+    <div class="form-group mb-3">
+      <label style="display: block; font-size: 0.75rem; font-weight: 500; color: #8f9098; margin-bottom: 6px;">Contrase&ntilde;a</label>
+      <div style="position: relative;">
+        <i class="bi bi-lock-fill" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #63646b; font-size: 0.875rem; z-index: 1;"></i>
+        <input [type]="mostrarPassword ? 'text' : 'password'" [(ngModel)]="registerDTO.password" (input)="onPasswordChange()" (focus)="passwordTouched = true" placeholder="Ingres&aacute; tu contrase&ntilde;a"
+               style="width: 100%; padding: 10px 36px 10px 36px; background: #131416; border: 1px solid #27282b; border-radius: 8px; color: #f4f4f5; font-size: 0.875rem; outline: none; box-sizing: border-box;" />
+        <button type="button" (click)="togglePassword()"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8f9098; cursor: pointer; z-index: 1;">
+          <i class="bi" [ngClass]="mostrarPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+        </button>
       </div>
       <div class="password-reqs" *ngIf="passwordTouched && registerDTO.password.length > 0">
-        <div
-          class="password-req"
-          *ngFor="let req of passwordReqs"
-          [class.valid]="req.valid"
-          [class.invalid]="!req.valid"
-        >
+        <div class="password-req" *ngFor="let req of passwordReqs" [class.valid]="req.valid" [class.invalid]="!req.valid"
+             style="font-size: 0.75rem; display: flex; align-items: center; gap: 4px; margin-top: 4px;"
+             [style.color]="req.valid ? '#4ade80' : '#8f9098'">
           <i class="bi" [ngClass]="req.valid ? 'bi-check-circle-fill' : 'bi-circle'"></i>
           <span>{{ req.label }}</span>
         </div>
@@ -74,26 +57,33 @@
     </div>
 
     <div class="d-flex gap-2">
-      <button class="btn-auth flex-fill" (click)="RegistrarUsuario()" [disabled]="cargando">
-        <i class="bi bi-person-plus me-2"></i>
+      <button (click)="RegistrarUsuario()" [disabled]="cargando"
+              style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: #3b82f6; color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;"
+              (mouseenter)="$any($event.target).style.background='#2563eb'" (mouseleave)="$any($event.target).style.background='#3b82f6'">
+        <i class="bi bi-person-plus"></i>
         <span *ngIf="!cargando">Registrarse</span>
         <span *ngIf="cargando">Registrando...</span>
       </button>
-      <button class="btn-outline" (click)="resetFormulario()">
+      <button (click)="resetFormulario()"
+              style="padding: 10px 16px; border: 1px solid #27282b; border-radius: 8px; background: transparent; color: #8f9098; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.15s;"
+              (mouseenter)="$any($event.target).style.background='#27282b'" (mouseleave)="$any($event.target).style.background='transparent'">
         <i class="bi bi-arrow-counterclockwise"></i>
       </button>
     </div>
 
-    <div *ngIf="notificacion" class="notificacion" [ngClass]="'notificacion-' + notificacion.tipo">
+    <div *ngIf="notificacion" style="margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: center; gap: 8px;"
+         [style.background]="notificacion.tipo === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'"
+         [style.color]="notificacion.tipo === 'success' ? '#4ade80' : '#f87171'"
+         [style.border]="notificacion.tipo === 'success' ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'">
       <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
       <span>{{ notificacion.mensaje }}</span>
     </div>
 
-    <hr class="divider" />
+    <hr style="border: none; border-top: 1px solid #27282b; margin: 20px 0;" />
 
-    <p class="auth-footer-text">
-      ¿Ya tenés cuenta?
-      <a routerLink="/login" class="auth-link">Iniciar sesión</a>
+    <p style="text-align: center; font-size: 0.8125rem; color: #8f9098; margin: 0;">
+      ¿Ya ten&eacute;s cuenta?
+      <a routerLink="/login" style="color: #60a5fa; text-decoration: none; font-weight: 500;">Iniciar sesi&oacute;n</a>
     </p>
   </div>
 </div>

@@ -1737,3 +1737,89 @@
     padding-right: 0.75rem;
   }
 }
+
+/* ===== CSS Variables for Theming ===== */
+:host {
+  --bg-main: #0e0f11;
+  --bg-card: #18191b;
+  --bg-input: #131416;
+  --bg-hover: #1c1d20;
+  --border-color: #27282b;
+  --text-primary: #f4f4f5;
+  --text-secondary: #8f9098;
+  --text-muted: #63646b;
+  --sidebar-bg: #18191b;
+  --drawer-bg: #18191b;
+  --accent: #3b82f6;
+  --accent-hover: #1e40af;
+}
+
+.light-mode {
+  --bg-main: #f0f2f5;
+  --bg-card: #ffffff;
+  --bg-input: #e8eaed;
+  --bg-hover: #e0e2e5;
+  --border-color: #d0d2d6;
+  --text-primary: #1a1c1e;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --sidebar-bg: #ffffff;
+  --drawer-bg: #ffffff;
+}
+
+/* ===== Linear Dark Theme Additions ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slideInDown {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.fade-in { animation: fadeIn 0.2s ease; }
+.slide-in-right { animation: slideInRight 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.nav-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #63646b;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+.nav-icon-btn:hover { background: #27282b; color: #f4f4f5; }
+.nav-icon-btn.active { background: #27282b; color: #3b82f6; }
+.logo-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.nav-item-btn {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.nav-item-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item-btn.active { background: var(--bg-hover); color: var(--accent); }

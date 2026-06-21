@@ -1,83 +1,70 @@
-<div class="auth-card">
-  <div class="auth-header">
-    <div class="auth-icon">
-      <i class="bi bi-shield-lock"></i>
+<div class="d-flex justify-content-center align-items-center vh-100" style="background: #0e0f11;">
+  <div style="width: 100%; max-width: 400px; background: #18191b; border-radius: 12px; padding: 32px;">
+    <div class="text-center mb-4">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(59,130,246,0.12); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <i class="bi bi-shield-lock" style="font-size: 1.5rem; color: #60a5fa;"></i>
+      </div>
+      <h2 style="font-size: 1.25rem; font-weight: 600; color: #f4f4f5; margin: 0 0 4px;">Iniciar Sesi&oacute;n</h2>
+      <p style="font-size: 0.8125rem; color: #8f9098; margin: 0;">Ingres&aacute; tus credenciales para acceder</p>
     </div>
-    <h2 class="auth-title">Iniciar Sesión</h2>
-    <p class="auth-subtitle">Ingresá tus credenciales para acceder</p>
-  </div>
 
-  <div class="auth-body">
-    <div class="form-group">
-      <label class="form-label">Nombre de usuario</label>
-      <div class="input-icon-wrapper">
-        <i class="bi bi-person-fill"></i>
-        <input
-          type="text"
-          class="form-control auth-input"
-          [(ngModel)]="loginDTO.username"
-          (ngModelChange)="verificarBloqueo()"
-          placeholder="Ingresá tu usuario"
-        />
+    <div class="form-group mb-3">
+      <label style="display: block; font-size: 0.75rem; font-weight: 500; color: #8f9098; margin-bottom: 6px;">Nombre de usuario</label>
+      <div style="position: relative;">
+        <i class="bi bi-person-fill" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #63646b; font-size: 0.875rem;"></i>
+        <input type="text" [(ngModel)]="loginDTO.username" (ngModelChange)="verificarBloqueo()" placeholder="Ingres&aacute; tu usuario"
+               style="width: 100%; padding: 10px 12px 10px 36px; background: #131416; border: 1px solid #27282b; border-radius: 8px; color: #f4f4f5; font-size: 0.875rem; outline: none; box-sizing: border-box;" />
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Contraseña</label>
-      <div class="input-icon-wrapper">
-        <i class="bi bi-lock-fill"></i>
-        <input
-          type="password"
-          class="form-control auth-input"
-          [(ngModel)]="loginDTO.password"
-          placeholder="••••••••"
-        />
+    <div class="form-group mb-3">
+      <label style="display: block; font-size: 0.75rem; font-weight: 500; color: #8f9098; margin-bottom: 6px;">Contrase&ntilde;a</label>
+      <div style="position: relative;">
+        <i class="bi bi-lock-fill" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #63646b; font-size: 0.875rem; z-index: 1;"></i>
+        <input [type]="mostrarPassword ? 'text' : 'password'" [(ngModel)]="loginDTO.password" placeholder="Ingres&aacute; tu contrase&ntilde;a"
+               style="width: 100%; padding: 10px 36px 10px 36px; background: #131416; border: 1px solid #27282b; border-radius: 8px; color: #f4f4f5; font-size: 0.875rem; outline: none; box-sizing: border-box;" />
+        <button type="button" (click)="togglePassword()"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8f9098; cursor: pointer; z-index: 1;">
+          <i class="bi" [ngClass]="mostrarPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+        </button>
       </div>
     </div>
 
-    <div class="form-group d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center justify-content-between mb-3">
       <div class="form-check">
-        <input
-          type="checkbox"
-          class="form-check-input"
-          id="recordar"
-          [(ngModel)]="recordar"
-        />
-        <label class="form-check-label" for="recordar">
-          Recordar contraseña
-        </label>
+        <input type="checkbox" class="form-check-input" id="recordar" [(ngModel)]="recordar" style="accent-color: #3b82f6;" />
+        <label class="form-check-label" for="recordar" style="font-size: 0.8125rem; color: #8f9098;">Recordar contrase&ntilde;a</label>
       </div>
-      <button class="btn-forgot" (click)="olvideContrasenia()">
-        ¿Olvidaste tu contraseña?
-      </button>
+      <button style="background: none; border: none; color: #60a5fa; font-size: 0.8125rem; cursor: pointer; padding: 0;" (click)="olvideContrasenia()">¿Olvidaste tu contrase&ntilde;a?</button>
     </div>
 
-    <button
-      class="btn-auth"
-      (click)="Login()"
-      [disabled]="bloqueado"
-    >
-      <i class="bi bi-box-arrow-in-right me-2"></i>
+    <button (click)="Login()" [disabled]="bloqueado"
+            style="width: 100%; padding: 10px; border: none; border-radius: 8px; background: #3b82f6; color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;"
+            (mouseenter)="$any($event.target).style.background='#2563eb'" (mouseleave)="$any($event.target).style.background='#3b82f6'">
+      <i class="bi bi-box-arrow-in-right"></i>
       <span *ngIf="!bloqueado">Ingresar</span>
       <span *ngIf="bloqueado">Bloqueado</span>
     </button>
 
-    <div *ngIf="bloqueado" class="block-banner">
-      <i class="bi bi-clock-history me-2"></i>
-      Usuario bloqueado — probá con otro o reintentá en
+    <div *ngIf="bloqueado" style="margin-top: 12px; padding: 10px; background: rgba(234,179,8,0.12); border: 1px solid rgba(234,179,8,0.3); border-radius: 8px; font-size: 0.8125rem; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+      <i class="bi bi-clock-history"></i>
+      Usuario bloqueado &mdash; prob&aacute; con otro o reintent&aacute; en
       <strong>{{ minutosBloqueo }}:{{ segundosBloqueo.toString().padStart(2, '0') }}</strong>
     </div>
 
-    <div *ngIf="notificacion" class="notificacion" [ngClass]="'notificacion-' + notificacion.tipo">
+    <div *ngIf="notificacion" style="margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: center; gap: 8px;"
+         [style.background]="notificacion.tipo === 'success' ? 'rgba(34,197,94,0.12)' : notificacion.tipo === 'danger' ? 'rgba(239,68,68,0.12)' : 'rgba(234,179,8,0.12)'"
+         [style.color]="notificacion.tipo === 'success' ? '#4ade80' : notificacion.tipo === 'danger' ? '#f87171' : '#fbbf24'"
+         [style.border]="notificacion.tipo === 'success' ? '1px solid rgba(34,197,94,0.3)' : notificacion.tipo === 'danger' ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(234,179,8,0.3)'">
       <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : notificacion.tipo === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-x-circle-fill'"></i>
       <span>{{ notificacion.mensaje }}</span>
     </div>
 
-    <hr class="divider" />
+    <hr style="border: none; border-top: 1px solid #27282b; margin: 20px 0;" />
 
-    <p class="auth-footer-text">
-      ¿No tenés cuenta?
-      <a routerLink="/registro" class="auth-link">Crear una cuenta</a>
+    <p style="text-align: center; font-size: 0.8125rem; color: #8f9098; margin: 0;">
+      ¿No ten&eacute;s cuenta?
+      <a routerLink="/registro" style="color: #60a5fa; text-decoration: none; font-weight: 500;">Crear una cuenta</a>
     </p>
   </div>
 </div>

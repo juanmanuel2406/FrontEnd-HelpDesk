@@ -6,6 +6,7 @@ import { Registro } from './components-ticket/usuarios/registro/registro';
 import { OlvideContrasenia } from './components-ticket/usuarios/olvide-contrasenia/olvide-contrasenia';
 import { ResetContrasenia } from './components-ticket/usuarios/reset-contrasenia/reset-contrasenia';
 import { Landing } from './components-ticket/landing/landing';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: '', component: Landing },
