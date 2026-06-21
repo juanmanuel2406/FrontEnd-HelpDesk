@@ -12,6 +12,7 @@ export class Login implements OnInit, OnDestroy {
 
   loginDTO: LoginDTO = { username: '', password: '' };
   notificacion: { tipo: string; mensaje: string } | null = null;
+  mostrarPassword: boolean = false;
   recordar: boolean = false;
   bloqueado: boolean = false;
   tiempoRestante: number = 0;
@@ -196,6 +197,11 @@ export class Login implements OnInit, OnDestroy {
       this.guardarCuentas(cuentas);
       this.mostrarNotificacion('warning', `Intento ${data.intentos} de 3. Tras 3 fallos la cuenta se bloqueará.`);
     }
+    this.cdr.detectChanges();
+  }
+
+  togglePassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
     this.cdr.detectChanges();
   }
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { TicketService, RegisterDTO } from '../../../services-ticket/ticket-service';
 
@@ -26,6 +26,7 @@ export class Registro {
   notificacion: { tipo: string; mensaje: string } | null = null;
   cargando: boolean = false;
   passwordTouched: boolean = false;
+  mostrarPassword: boolean = false;
   private timeoutId: any = null;
 
   passwordReqs: PasswordRequirement[] = [
@@ -35,7 +36,12 @@ export class Registro {
     { key: 'digit', label: 'Al menos un número (0-9)', valid: false },
   ];
 
-  constructor(private service: TicketService, private router: Router) {}
+  constructor(private service: TicketService, private router: Router, private cdr: ChangeDetectorRef) {}
+
+  togglePassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
+    this.cdr.detectChanges();
+  }
 
   private mostrarNotificacion(tipo: string, mensaje: string): void {
     this.notificacion = { tipo, mensaje };

@@ -1,100 +1,122 @@
-<div class="app-shell" [class.drawer-open]="mostrarDrawer">
+<div *ngIf="estaLogueado" class="d-flex vh-100 overflow-hidden" [ngClass]="{'light-mode': !isDarkMode}" style="background: var(--bg-main);">
 
-  <nav class="app-navbar">
-    <div class="container d-flex align-items-center justify-content-between">
-      <span class="app-brand" (click)="scrollA('inicio')" style="cursor:pointer">
-        <img src="/logo.png" alt="Logo" class="app-logo" />
-        <span>HelpDesk</span>
-      </span>
-
-      <div *ngIf="!estaLogueado && esLanding" class="landing-nav-links">
-        <a class="landing-nav-link" (click)="scrollA('inicio')">Inicio</a>
-        <a class="landing-nav-link" (click)="scrollA('introduccion')">Introducción</a>
-        <a class="landing-nav-link" (click)="scrollA('funcionalidades')">Funcionalidades</a>
-        <a class="landing-nav-link" (click)="scrollA('demostracion')">Demostración</a>
-        <a class="landing-nav-link" (click)="scrollA('creadores')">Creadores</a>
-      </div>
-
-      <div class="d-flex gap-2 align-items-center">
-        <ng-container *ngIf="!estaLogueado && esLanding">
-          <button class="btn-nav-outline" routerLink="/login">Iniciar Sesión</button>
-          <button class="btn-nav-primary" routerLink="/registro">Crear Cuenta</button>
-        </ng-container>
-        <ng-container *ngIf="estaLogueado">
-          <div class="user-avatar-wrapper" (click)="toggleDrawer($event)">
-            <div class="user-avatar" [style.background]="avatarColor(usuario)">{{ inicialUsuario }}</div>
-          </div>
-          <button class="btn-logout" (click)="cerrarSesion()">
-            <i class="bi bi-box-arrow-right me-1"></i> Salir
-          </button>
-        </ng-container>
-      </div>
-    </div>
-  </nav>
-
-  <div *ngIf="notificacion" class="notificacion-global" [ngClass]="'notificacion-' + notificacion.tipo">
+  <div *ngIf="notificacion" style="position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: slideInDown 0.25s ease-out; min-width: 300px; max-width: 600px;"
+       [style.background]="notificacion.tipo === 'success' ? '#065f46' : notificacion.tipo === 'danger' ? '#7f1d1d' : '#78350f'"
+       [style.color]="notificacion.tipo === 'success' ? '#d1fae5' : notificacion.tipo === 'danger' ? '#fee2e2' : '#fef3c7'"
+       [style.border]="notificacion.tipo === 'success' ? '1px solid #059669' : notificacion.tipo === 'danger' ? '1px solid #dc2626' : '1px solid #d97706'">
     <i class="bi" [ngClass]="notificacion.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
     <span>{{ notificacion.mensaje }}</span>
   </div>
 
-  <div *ngIf="!estaLogueado && esLanding" class="landing-page">
-    <router-outlet></router-outlet>
-  </div>
+  <nav style="position: fixed; left: 0; top: 0; height: 100vh; background: var(--bg-card); border-right: 1px solid var(--border-color); z-index: 1030; overflow: hidden; white-space: nowrap; transition: width 0.3s ease; display: flex; flex-direction: column;"
+       [style.width]="sidebarExpandida ? '280px' : '70px'">
+    <div class="d-flex flex-column justify-content-between h-100 py-3" style="width: 280px;">
+      <div class="d-flex flex-column align-items-start px-3 gap-3">
+        <button style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 8px; transition: all 0.15s;"
+                (click)="sidebarExpandida = !sidebarExpandida; cdr.detectChanges()">
+          <i class="bi" [class.bi-list]="!sidebarExpandida" [class.bi-x]="sidebarExpandida" style="font-size: 1.5rem;"></i>
+        </button>
 
-  <div *ngIf="!estaLogueado && !esLanding" class="auth-page">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12 col-md-6 col-lg-5">
-          <router-outlet></router-outlet>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 0 8px; width: 100%;">
+          <img src="/logo.png" alt="HelpDesk" [style.width]="sidebarExpandida ? '52px' : '32px'" [style.height]="sidebarExpandida ? '52px' : '32px'" style="border-radius: 8px; transition: all 0.3s ease;">
+          <span *ngIf="sidebarExpandida" style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">HelpDesk</span>
+        </div>
+
+        <div class="d-flex flex-column gap-1 w-100">
+          <button class="nav-item-btn" [class.active]="sidebarActiva === 'inbox'" (click)="seleccionarOpcion('inbox')">
+            <div class="d-flex align-items-center gap-3">            <i class="bi bi-bell-fill" style="font-size: 1.25rem;"></i> <span *ngIf="sidebarExpandida">Inbox</span></div>
+          </button>
+          <button class="nav-item-btn" [class.active]="sidebarActiva === 'crear-ticket'" (click)="seleccionarOpcion('crear-ticket')">
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-plus-circle" style="font-size: 1.25rem;"></i> <span *ngIf="sidebarExpandida">Crear Ticket</span></div>
+          </button>
+          <button class="nav-item-btn" [class.active]="sidebarActiva === 'dashboard'" (click)="seleccionarOpcion('dashboard')">
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-speedometer2" style="font-size: 1.25rem;"></i> <span *ngIf="sidebarExpandida">Dashboard</span></div>
+          </button>
+          <button class="nav-item-btn" [class.active]="sidebarActiva === 'tus-tickets'" (click)="seleccionarOpcion('tus-tickets')">
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-ticket" style="font-size: 1.25rem;"></i> <span *ngIf="sidebarExpandida">Tus Tickets</span></div>
+          </button>
+          <button class="nav-item-btn" [class.active]="sidebarActiva === 'teams'" (click)="seleccionarOpcion('teams')">
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-people-fill" style="font-size: 1.25rem;"></i> <span *ngIf="sidebarExpandida">Teams</span></div>
+          </button>
+          <button class="nav-item-btn" [class.active]="sidebarActiva === 'settings'" (click)="seleccionarOpcion('settings')">
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-gear-wide-connected" style="font-size: 1.25rem;"></i> <span *ngIf="sidebarExpandida">Settings</span></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-3">
+        <button class="nav-item-btn" (click)="toggleDrawer($event)">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--accent); color: #fff;">
+              <img *ngIf="imagenPerfilUrl" [src]="imagenPerfilUrl" style="width: 100%; height: 100%; object-fit: cover;">
+              <span *ngIf="!imagenPerfilUrl" style="font-size: 0.7rem;">{{ inicialUsuario }}</span>
+            </div>
+            <span *ngIf="sidebarExpandida" style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Perfil</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow-1 overflow-hidden d-flex flex-column" [style.margin-left]="sidebarExpandida ? '280px' : '70px'" style="transition: margin-left 0.3s ease;">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div *ngIf="sidebarActiva === 'dashboard'" class="overflow-y-auto flex-grow-1 p-4">
+      <div style="max-width: 1400px; margin: 0 auto;">
+        <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0 0 4px;">Dashboard</h1>
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0 0 20px;">Resumen general del sistema de tickets</p>
+        <app-dashboard></app-dashboard>
+      </div>
+    </div>
+
+    <!-- ===== INBOX ===== -->
+    <div *ngIf="sidebarActiva === 'inbox'" class="overflow-y-auto flex-grow-1">
+      <div style="max-width: 1400px; margin: 0 auto; padding: 24px 32px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+          <div>
+            <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0 0 4px;">Inbox</h1>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">Alertas y novedades del sistema</p>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; border-bottom: 1px solid var(--border-color);">
+            <h3 style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; margin: 0;">ALERTAS RECIENTES</h3>
+          </div>
+          <div class="d-flex flex-column align-items-center justify-content-center py-5 gap-3" style="color: var(--text-secondary); min-height: 300px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span style="font-size: 0.9375rem; font-weight: 500; color: var(--text-primary);">No tienes notificaciones nuevas</span>
+            <span style="font-size: 0.8125rem; color: var(--text-secondary);">Las alertas de equipos y novedades aparecerán aquí</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div *ngIf="estaLogueado" class="logged-in-layout">
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a class="sidebar-item" [class.active]="sidebarActiva === 'dashboard'" (click)="seleccionarOpcion('dashboard')">
-          <i class="bi bi-speedometer2 me-2"></i> Dashboard
-        </a>
-        <a class="sidebar-item" *ngIf="!esViewer" [class.active]="sidebarActiva === 'crear-ticket'" (click)="seleccionarOpcion('crear-ticket')">
-          <i class="bi bi-plus-circle me-2"></i> Crear Ticket
-        </a>
-        <a class="sidebar-item" [class.active]="sidebarActiva === 'tus-tickets'" (click)="seleccionarOpcion('tus-tickets')">
-          <i class="bi bi-ticket me-2"></i> Tus Tickets
-        </a>
-      </nav>
-    </aside>
-
-    <main class="main-content">
-
-      <!-- ===== DASHBOARD ===== -->
-      <div *ngIf="sidebarActiva === 'dashboard'" class="content-section">
-        <app-dashboard></app-dashboard>
-      </div>
-
-      <!-- ===== CREAR / EDITAR TICKET ===== -->
-      <div *ngIf="sidebarActiva === 'crear-ticket'" class="content-section">
-        <h1 class="content-title">{{ editMode ? 'Editar ticket' : 'Crear un nuevo ticket' }}</h1>
-        <p class="content-subtitle">{{ editMode ? 'Modificá los campos del ticket' : 'Complete los campos para registrar un ticket de soporte' }}</p>
+    <!-- ===== CREAR / EDITAR TICKET ===== -->
+    <div *ngIf="sidebarActiva === 'crear-ticket'" class="overflow-y-auto flex-grow-1">
+      <div style="max-width: 1400px; margin: 0 auto; padding: 24px 32px;">
+        <div style="margin-bottom: 24px;">
+          <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0 0 4px;">{{ editMode ? 'Editar Ticket' : 'Crear Nuevo Ticket' }}</h1>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">{{ editMode ? 'Modifique los detalles de la solicitud' : 'Complete los detalles para abrir una nueva solicitud' }}</p>
+        </div>
 
         <div class="form-card">
           <div class="form-card-header">
             <h3 class="form-card-title">{{ editMode ? 'EDITAR TICKET' : 'CREAR TICKET' }}</h3>
-            <p class="form-card-subtitle">{{ editMode ? 'Modificá los datos y guardá los cambios' : 'Complete los campos del formulario' }}</p>
+            <p class="form-card-subtitle">{{ editMode ? 'Modific&aacute; los datos y guard&aacute; los cambios' : 'Complete los campos del formulario' }}</p>
           </div>
           <div class="form-card-body">
-            <div class="form-group">
+            <div style="margin-bottom: 16px;">
               <input type="text" class="form-input" placeholder="Resumen del problema" [(ngModel)]="createForm.title" />
             </div>
-
-            <div class="form-group">
+            <div style="margin-bottom: 16px;">
               <textarea class="form-textarea" placeholder="Explique el problema en detalle" rows="6" [(ngModel)]="createForm.description"></textarea>
             </div>
-
-            <div class="form-row-2">
-              <div class="form-group">
-                <label class="form-label">Prioridad</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;">Prioridad</label>
                 <div class="select-wrapper">
                   <select class="form-input" [(ngModel)]="createForm.priority">
                     <option value="low">Baja</option>
@@ -104,19 +126,18 @@
                   <i class="bi bi-chevron-down select-arrow"></i>
                 </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">Estado</label>
+              <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;">Estado</label>
                 <input type="text" class="form-input" [value]="editMode ? estadoLabel(ticketSeleccionado?.status) : 'Pendiente'" disabled />
               </div>
             </div>
-
-            <div class="form-footer">
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
               <div class="d-flex gap-2">
-                <button class="btn-crear" (click)="editMode ? guardarEdicion() : crearTicket()">
+                <button class="btn-crear" *ngIf="puedeCrearEditarBorrar" [disabled]="!createForm.title || !createForm.description" (click)="editMode ? guardarEdicion() : crearTicket()">
                   <i class="bi" [ngClass]="editMode ? 'bi-check-lg' : 'bi-plus-lg'"></i>
-                  {{ editMode ? 'GUARDAR CAMBIOS' : 'CREAR' }}
+                  {{ editMode ? 'GUARDAR CAMBIOS' : 'CREAR SOLICITUD' }}
                 </button>
-                <button class="btn-crear btn-cancelar" *ngIf="editMode" (click)="resetForm()">
+                <button class="btn-crear btn-cancelar" (click)="resetForm(); seleccionarOpcion('tus-tickets')">
                   <i class="bi bi-x-lg"></i> CANCELAR
                 </button>
               </div>
@@ -124,230 +145,360 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ===== TUS TICKETS ===== -->
-      <div *ngIf="sidebarActiva === 'tus-tickets'" class="content-section">
-        <h1 class="content-title">Tus Tickets</h1>
-        <p class="content-subtitle">Administrá todos tus tickets</p>
+    <!-- ===== TUS TICKETS ===== -->
+    <div *ngIf="sidebarActiva === 'tus-tickets'" class="overflow-y-auto flex-grow-1">
+      <div style="max-width: 1400px; margin: 0 auto; padding: 24px 32px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0;">Tus Tickets</h1>
+          <button style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                  (click)="actualizarTickets()" title="Actualizar"
+                  onmouseover="this.style.background='var(--border-color)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
+            <i class="bi bi-arrow-clockwise fs-6"></i>
+          </button>
+        </div>
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0 0 24px;">Administrá todos tus tickets</p>
 
-        <div class="nav nav-pills nav-fill bg-white p-2 mb-3 rounded shadow-sm border">
-          <button class="nav-link fw-bold text-dark rounded" [class.active]="tabTickets === 'enviados'" [class.bg-primary]="tabTickets === 'enviados'" [class.text-white]="tabTickets === 'enviados'" (click)="cambiarTabTickets('enviados')">
+        <div class="nav nav-pills nav-fill" style="background: var(--bg-card); padding: 4px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+          <button class="nav-link fw-bold rounded-2" style="font-size: 0.8125rem; color: var(--text-secondary); transition: all 0.15s;"
+                  [class.active]="tabTickets === 'enviados'"
+                  [style.background]="tabTickets === 'enviados' ? 'var(--accent)' : 'transparent'"
+                  [style.color]="tabTickets === 'enviados' ? '#fff' : 'var(--text-secondary)'"
+                  (click)="cambiarTabTickets('enviados')">
             <i class="bi bi-send me-1"></i> Tickets Enviados
-            <span class="tab-count">{{ ticketsEnviados.length }}</span>
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.6875rem; font-weight: 700; margin-left: 4px; background: rgba(0,0,0,0.2);">
+              {{ ticketsEnviados.length }}
+            </span>
           </button>
-          <button class="nav-link fw-bold text-dark rounded" [class.active]="tabTickets === 'recibidos'" [class.bg-primary]="tabTickets === 'recibidos'" [class.text-white]="tabTickets === 'recibidos'" (click)="cambiarTabTickets('recibidos')">
+          <button class="nav-link fw-bold rounded-2" style="font-size: 0.8125rem; color: var(--text-secondary); transition: all 0.15s;"
+                  [class.active]="tabTickets === 'recibidos'"
+                  [style.background]="tabTickets === 'recibidos' ? 'var(--accent)' : 'transparent'"
+                  [style.color]="tabTickets === 'recibidos' ? '#fff' : 'var(--text-secondary)'"
+                  (click)="cambiarTabTickets('recibidos')">
             <i class="bi bi-inbox me-1"></i> Tickets Recibidos
-            <span class="tab-count">{{ ticketsRecibidos.length }}</span>
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.6875rem; font-weight: 700; margin-left: 4px; background: rgba(0,0,0,0.2);">
+              {{ ticketsRecibidos.length }}
+            </span>
           </button>
         </div>
 
-        <div class="progress-card" *ngIf="tabTickets === 'enviados' && totalEnviados > 0">
-          <div class="progress-header">
-            <span class="progress-label">Progreso general</span>
-            <span class="progress-count">{{ completados }} / {{ totalEnviados }} completados</span>
+        <div *ngIf="tabTickets === 'enviados' && totalEnviados > 0" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">Progreso general</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">{{ completados }} / {{ totalEnviados }} completados</span>
           </div>
-          <div class="progress-bar-track">
-            <div class="progress-bar-fill" [style.width.%]="progreso" [ngClass]="progreso === 100 ? 'bg-success' : progreso > 50 ? 'bg-info' : ''"></div>
+          <div style="height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; border-radius: 3px; transition: width 0.4s ease;"
+                 [style.width.%]="progreso"
+                 [style.background]="progreso === 100 ? '#22c55e' : 'var(--accent)'"></div>
           </div>
-          <span class="progress-porcentaje">{{ progreso }}%</span>
+          <span style="display: block; text-align: right; font-size: 0.6875rem; color: var(--text-muted); margin-top: 4px;">{{ progreso }}%</span>
         </div>
 
-        <!-- ENVIADOS -->
-        <div class="form-card" *ngIf="tabTickets === 'enviados'">
-          <div class="form-card-header">
-            <h3 class="form-card-title">ENVIADOS POR MÍ</h3>
-            <p class="form-card-subtitle">Tickets que reportaste</p>
+        <div *ngIf="tabTickets === 'enviados'" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; border-bottom: 1px solid var(--border-color);">
+            <h3 style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; margin: 0;">ENVIADOS POR MÍ</h3>
           </div>
-          <div class="form-card-body">
-            <div *ngIf="ticketsEnviados.length === 0">
-              <div class="text-center p-5 mt-4 bg-light rounded border border-2 border-dashed">
-                <i class="bi bi-folder-x text-secondary d-block mb-3" style="font-size: 3rem;"></i>
-                <p class="text-muted fs-5 fw-semibold fst-italic mb-0">No reportaste tickets todavía.</p>
-              </div>
-              <div class="text-center mt-3">
-                <button class="btn-crear" (click)="seleccionarOpcion('crear-ticket')">Crear mi primer ticket</button>
-              </div>
-            </div>
-            <div class="table-responsive" *ngIf="ticketsEnviados.length > 0">
-              <table class="tickets-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Título</th>
-                    <th>Estado</th>
-                    <th>Prioridad</th>
-                    <th>Asignado</th>
-                    <th>Fecha alta</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let t of ticketsEnviados">
-                    <td class="td-id">{{ t.id }}</td>
-                    <td class="td-title">{{ t.title }}</td>
-                    <td>
-                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : t.status === 'resolved' ? 'badge-completado' : t.status === 'in_progress' ? 'badge-pendiente' : 'badge-pendiente'">
-                        <i class="bi" [ngClass]="t.status === 'closed' || t.status === 'resolved' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
-                        {{ estadoLabel(t.status) }}
-                      </span>
-                    </td>
-                    <td>
-                      <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
-                    </td>
-                    <td>
-                      <div class="avatar-mini" *ngIf="nombreAsignado(t)" [style.background]="avatarColor(nombreAsignado(t))" [title]="nombreAsignado(t)">{{ inicialDe(nombreAsignado(t)) }}</div>
-                      <span *ngIf="!nombreAsignado(t)" class="text-muted">—</span>
-                    </td>
-                    <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
-                    <td>
-                      <button class="btn-action btn-action-edit" *ngIf="puedeCrearEditarBorrar" (click)="iniciarEdicion(t)" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                      <button class="btn-action btn-action-delete" *ngIf="puedeCrearEditarBorrar" (click)="eliminarTicket(t.id)" title="Eliminar">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                      <button class="btn-action btn-action-view" (click)="verDetalle(t)" title="Detalle">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">ID</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Título</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Estado</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Prioridad</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Asignado</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Fecha alta</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of ticketsEnviados" style="transition: background 0.1s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; color: var(--text-muted); font-family: monospace; border-bottom: 1px solid var(--bg-hover);">{{ t.id }}</td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; color: var(--text-primary); font-weight: 500; border-bottom: 1px solid var(--bg-hover);">{{ t.title }}</td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500;"
+                          [style.background]="(t.status === 'closed' || t.status === 'resolved') ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)'"
+                          [style.color]="(t.status === 'closed' || t.status === 'resolved') ? '#4ade80' : '#fbbf24'">
+                      <i class="bi" [ngClass]="(t.status === 'closed' || t.status === 'resolved') ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
+                      {{ estadoLabel(t.status) }}
+                    </span>
+                  </td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <span style="display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em;"
+                          [style.background]="t.priority === 'high' ? 'rgba(239,68,68,0.12)' : t.priority === 'medium' ? 'rgba(234,179,8,0.12)' : 'rgba(107,114,128,0.12)'"
+                          [style.color]="t.priority === 'high' ? '#f87171' : t.priority === 'medium' ? '#fbbf24' : '#9ca3af'">
+                      {{ prioridadLabel(t.priority) }}
+                    </span>
+                  </td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <div *ngIf="nombreAsignado(t)" style="width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.625rem; font-weight: 600;"
+                         [style.background]="avatarColor(nombreAsignado(t))" [title]="nombreAsignado(t)">{{ inicialDe(nombreAsignado(t)) }}</div>
+                    <span *ngIf="!nombreAsignado(t)" style="color: var(--text-muted);">—</span>
+                  </td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; color: var(--text-secondary); border-bottom: 1px solid var(--bg-hover);">{{ fechaLabel(t.createdAt) }}</td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <button *ngIf="puedeCrearEditarBorrar" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                            (click)="iniciarEdicion(t)" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button *ngIf="puedeCrearEditarBorrar" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                            (click)="eliminarTicket(t.id)" title="Eliminar">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <button style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                            (click)="verDetalle(t)" title="Detalle">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- RECIBIDOS -->
-        <div class="form-card" *ngIf="tabTickets === 'recibidos'">
-          <div class="form-card-header">
-            <h3 class="form-card-title">RECIBIDOS / ASIGNADOS</h3>
-            <p class="form-card-subtitle">Tickets asignados a vos</p>
+        <div *ngIf="tabTickets === 'recibidos'" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 20px; border-bottom: 1px solid var(--border-color);">
+            <h3 style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; margin: 0;">RECIBIDOS / ASIGNADOS</h3>
           </div>
-          <div class="form-card-body">
-            <div *ngIf="ticketsRecibidos.length === 0">
-              <div class="text-center p-5 mt-4 bg-light rounded border border-2 border-dashed">
-                <i class="bi bi-folder-x text-secondary d-block mb-3" style="font-size: 3rem;"></i>
-                <p class="text-muted fs-5 fw-semibold fst-italic mb-0">No tenés tickets asignados.</p>
-              </div>
-            </div>
-            <div class="table-responsive" *ngIf="ticketsRecibidos.length > 0">
-              <table class="tickets-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Título</th>
-                    <th>Estado</th>
-                    <th>Prioridad</th>
-                    <th>Creador</th>
-                    <th>Fecha alta</th>
-                    <th>Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let t of ticketsRecibidos">
-                    <td class="td-id">{{ t.id }}</td>
-                    <td class="td-title">{{ t.title }}</td>
-                    <td>
-                      <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : t.status === 'resolved' ? 'badge-completado' : t.status === 'in_progress' ? 'badge-pendiente' : 'badge-pendiente'">
-                        <i class="bi" [ngClass]="t.status === 'closed' || t.status === 'resolved' ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
-                        {{ estadoLabel(t.status) }}
-                      </span>
-                    </td>
-                    <td>
-                      <span class="badge-prioridad" [ngClass]="'prioridad-' + t.priority">{{ prioridadLabel(t.priority) }}</span>
-                    </td>
-                    <td>
-                      <div class="avatar-mini" [style.background]="avatarColor(nombreCreador(t))" [title]="nombreCreador(t)">{{ inicialDe(nombreCreador(t)) }}</div>
-                    </td>
-                    <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
-                    <td>
-                      <button class="btn-action btn-action-assign" *ngIf="puedeAsignarTicketBtn(t)" (click)="asignarTicket(t)" title="Asignarme">
-                        <i class="bi bi-person-plus"></i> Asignar
-                      </button>
-                      <button class="btn-action" [ngClass]="t.status === 'closed' ? 'btn-action-reopen' : 'btn-action-complete'" (click)="toggleEstado(t)" title="Cambiar estado">
-                        <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-arrow-counterclockwise' : 'bi-check-lg'"></i>
-                        {{ t.status === 'closed' ? 'Reabrir' : 'Completar' }}
-                      </button>
-                      <button class="btn-action btn-action-view" (click)="verDetalle(t)" title="Detalle">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">ID</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Título</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Estado</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Prioridad</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Creador</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Fecha alta</th>
+                  <th style="text-align: left; padding: 10px 16px; font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of ticketsRecibidos" style="transition: background 0.1s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; color: var(--text-muted); font-family: monospace; border-bottom: 1px solid var(--bg-hover);">{{ t.id }}</td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; color: var(--text-primary); font-weight: 500; border-bottom: 1px solid var(--bg-hover);">{{ t.title }}</td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500;"
+                          [style.background]="(t.status === 'closed' || t.status === 'resolved') ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)'"
+                          [style.color]="(t.status === 'closed' || t.status === 'resolved') ? '#4ade80' : '#fbbf24'">
+                      <i class="bi" [ngClass]="(t.status === 'closed' || t.status === 'resolved') ? 'bi-check-circle-fill' : 'bi-hourglass-split'"></i>
+                      {{ estadoLabel(t.status) }}
+                    </span>
+                  </td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <span style="display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em;"
+                          [style.background]="t.priority === 'high' ? 'rgba(239,68,68,0.12)' : t.priority === 'medium' ? 'rgba(234,179,8,0.12)' : 'rgba(107,114,128,0.12)'"
+                          [style.color]="t.priority === 'high' ? '#f87171' : t.priority === 'medium' ? '#fbbf24' : '#9ca3af'">
+                      {{ prioridadLabel(t.priority) }}
+                    </span>
+                  </td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.625rem; font-weight: 600;"
+                         [style.background]="avatarColor(nombreCreador(t))" [title]="nombreCreador(t)">{{ inicialDe(nombreCreador(t)) }}</div>
+                  </td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; color: var(--text-secondary); border-bottom: 1px solid var(--bg-hover);">{{ fechaLabel(t.createdAt) }}</td>
+                  <td style="padding: 10px 16px; font-size: 0.8125rem; border-bottom: 1px solid var(--bg-hover);">
+                    <button *ngIf="puedeAsignarTicketBtn(t)" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                            (click)="asignarTicket(t)" title="Asignarme">
+                      <i class="bi bi-person-plus"></i> Asignar
+                    </button>
+                    <button style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                            (click)="toggleEstado(t)" title="Cambiar estado">
+                      <i class="bi" [ngClass]="t.status === 'closed' ? 'bi-arrow-counterclockwise' : 'bi-check-lg'"></i>
+                      {{ t.status === 'closed' ? 'Reabrir' : 'Completar' }}
+                    </button>
+                    <button style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.15s;"
+                            (click)="verDetalle(t)" title="Detalle">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ===== DETALLE TICKET ===== -->
-      <div *ngIf="sidebarActiva === 'detalle-ticket' && ticketSeleccionado" class="content-section">
-        <h1 class="content-title">Detalle del Ticket #{{ ticketSeleccionado.id }}</h1>
-        <p class="content-subtitle">{{ ticketSeleccionado.title }}</p>
+    <!-- ===== TEAMS ===== -->
+    <div *ngIf="sidebarActiva === 'teams'" class="overflow-y-auto flex-grow-1">
+      <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1 gap-3 py-5" style="color: var(--text-secondary); min-height: 80vh;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <h2 class="fs-5 fw-semibold m-0" style="color: var(--text-primary);">Teams</h2>
+        <p class="m-0" style="font-size: 0.875rem; color: var(--text-secondary);">Gesti&oacute;n de equipos y miembros</p>
+      </div>
+    </div>
 
-        <div class="form-card">
-          <div class="form-card-header">
-            <h3 class="form-card-title">INFORMACIÓN DEL TICKET</h3>
+    <!-- ===== SETTINGS ===== -->
+    <div *ngIf="sidebarActiva === 'settings'" class="overflow-y-auto flex-grow-1">
+      <div style="max-width: 1200px; margin: 0 auto; padding: 24px 32px;">
+        <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0 0 24px;">Settings</h1>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 24px;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+            <h3 style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; margin: 0;">PERFIL</h3>
           </div>
-          <div class="form-card-body">
-            <div class="row">
-              <div class="col-6">
-                <p><strong>Creador:</strong> 
-                  <span class="avatar-mini avatar-xs" [style.background]="avatarColor(nombreCreador(ticketSeleccionado))">{{ inicialDe(nombreCreador(ticketSeleccionado)) }}</span>
-                  {{ nombreCreador(ticketSeleccionado) }}
-                </p>
-                <p><strong>Email:</strong> {{ ticketSeleccionado.createdBy?.email || '—' }}</p>
-                <p><strong>Estado:</strong> {{ estadoLabel(ticketSeleccionado.status) }}</p>
+          <div style="padding: 24px 20px;">
+            <div class="d-flex align-items-center gap-4">
+              <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
+                <img *ngIf="imagenPerfilUrl" [src]="imagenPerfilUrl" style="width: 100%; height: 100%; object-fit: cover;">
+                <div *ngIf="!imagenPerfilUrl" style="width: 100%; height: 100%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 3rem;">{{ inicialUsuario }}</div>
+                <div style="position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--border-color); border: 2px solid var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: all 0.15s;"
+                     title="Cambiar foto"
+                     (click)="fileInput.click()"
+                     (mouseenter)="$any($event.target).style.background='var(--accent)'; $any($event.target).style.color='#fff'"
+                      (mouseleave)="$any($event.target).style.background='var(--border-color)'; $any($event.target).style.color='var(--text-secondary)'">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </div>
+                <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)">
               </div>
-              <div class="col-6">
-                <p><strong>Asignado:</strong> 
-                  <span *ngIf="nombreAsignado(ticketSeleccionado)">
-                    <span class="avatar-mini avatar-xs" [style.background]="avatarColor(nombreAsignado(ticketSeleccionado))">{{ inicialDe(nombreAsignado(ticketSeleccionado)) }}</span>
-                    {{ nombreAsignado(ticketSeleccionado) }}
-                  </span>
-                  <span *ngIf="!nombreAsignado(ticketSeleccionado)" class="text-muted">—</span>
-                </p>
-                <p><strong>Prioridad:</strong> {{ prioridadLabel(ticketSeleccionado.priority) }}</p>
-                <p><strong>Fecha:</strong> {{ fechaLabel(ticketSeleccionado.createdAt) }}</p>
+              <div>
+                <div class="fs-6 fw-semibold" style="color: var(--text-primary);">{{ userData?.fullname || usuario }}</div>
+                <div style="font-size: 0.8125rem; color: var(--text-secondary);">{{ userData?.email }}</div>
+                <span class="d-inline-flex px-2 py-1 rounded-1 fw-semibold text-uppercase mt-1" style="font-size: 0.6875rem; letter-spacing: 0.04em;"
+                      [style.background]="rolUsuario === 'admin' ? 'rgba(168,85,247,0.12)' : rolUsuario === 'agent' ? 'rgba(59,130,246,0.12)' : 'rgba(107,114,128,0.12)'"
+                      [style.color]="rolUsuario === 'admin' ? '#c084fc' : rolUsuario === 'agent' ? '#60a5fa' : '#9ca3af'">
+                  {{ rolUsuario }}
+                </span>
               </div>
             </div>
-            <p><strong>Descripción:</strong></p>
-            <p class="text-muted">{{ ticketSeleccionado.description }}</p>
           </div>
         </div>
 
-        <div class="mt-3">
-          <button class="btn-crear" (click)="seleccionarOpcion('tus-tickets')">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 24px;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+            <h3 style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; margin: 0;">APARIENCIA Y TEMA</h3>
+          </div>
+          <div style="padding: 20px;">
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0 0 16px;">Modo de visualización</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span style="font-size: 0.875rem; color: var(--text-primary);">Modo oscuro</span>
+              <div (click)="toggleTheme(); cdr.detectChanges()"
+                   style="width: 48px; height: 26px; border-radius: 13px; cursor: pointer; transition: background 0.2s; position: relative;"
+                   [style.background]="isDarkMode ? '#3b82f6' : 'var(--border-color)'">
+                <div style="width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform 0.2s; position: absolute; top: 2px;"
+                     [style.left]="isDarkMode ? '24px' : '2px'"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5" style="color: var(--text-secondary);">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <h2 class="fs-5 fw-semibold m-0" style="color: var(--text-primary);">Configuraci&oacute;n del sistema</h2>
+          <p class="m-0" style="font-size: 0.875rem; color: var(--text-secondary);">Preferencias y opciones generales</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DETALLE TICKET ===== -->
+    <div *ngIf="sidebarActiva === 'detalle-ticket' && ticketSeleccionado" class="overflow-y-auto flex-grow-1">
+      <div style="max-width: 1200px; margin: 0 auto; padding: 32px 32px;">
+        <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0 0 4px;">Detalle del Ticket #{{ ticketSeleccionado.id }}</h1>
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0 0 24px;">{{ ticketSeleccionado.title }}</p>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+            <h3 style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.05em; margin: 0;">INFORMACIÓN DEL TICKET</h3>
+          </div>
+          <div style="padding: 20px;">
+            <div class="row">
+              <div class="col-6">
+                <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 8px;">
+                  <strong style="color: var(--text-secondary);">Creador:</strong>
+                  <span style="display: inline-flex; width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center; color: #fff; font-size: 0.625rem; font-weight: 600; margin: 0 4px;"
+                        [style.background]="avatarColor(nombreCreador(ticketSeleccionado))">{{ inicialDe(nombreCreador(ticketSeleccionado)) }}</span>
+                  {{ nombreCreador(ticketSeleccionado) }}
+                </p>
+                <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 8px;">
+                  <strong style="color: var(--text-secondary);">Email:</strong> {{ ticketSeleccionado.createdBy?.email || '—' }}
+                </p>
+                <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 8px;">
+                  <strong style="color: var(--text-secondary);">Estado:</strong> {{ estadoLabel(ticketSeleccionado.status) }}
+                </p>
+              </div>
+              <div class="col-6">
+                <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 8px;">
+                  <strong style="color: var(--text-secondary);">Asignado:</strong>
+                  <span *ngIf="nombreAsignado(ticketSeleccionado)">
+                    <span style="display: inline-flex; width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center; color: #fff; font-size: 0.625rem; font-weight: 600; margin: 0 4px;"
+                          [style.background]="avatarColor(nombreAsignado(ticketSeleccionado))">{{ inicialDe(nombreAsignado(ticketSeleccionado)) }}</span>
+                    {{ nombreAsignado(ticketSeleccionado) }}
+                  </span>
+                  <span *ngIf="!nombreAsignado(ticketSeleccionado)" style="color: var(--text-muted);">—</span>
+                </p>
+                <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 8px;">
+                  <strong style="color: var(--text-secondary);">Prioridad:</strong> {{ prioridadLabel(ticketSeleccionado.priority) }}
+                </p>
+                <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 8px;">
+                  <strong style="color: var(--text-secondary);">Fecha:</strong> {{ fechaLabel(ticketSeleccionado.createdAt) }}
+                </p>
+              </div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--text-primary); margin-bottom: 4px;"><strong style="color: var(--text-secondary);">Descripción:</strong></p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">{{ ticketSeleccionado.description }}</p>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <button style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; color: #fff; border: none; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer;"
+                  style="background: var(--accent)"
+                  (click)="seleccionarOpcion('tus-tickets')">
             <i class="bi bi-arrow-left me-1"></i> Volver a Tickets
           </button>
         </div>
       </div>
-
-    </main>
-  </div>
-
-  <!-- ===== SIDE DRAWER - PERFIL ===== -->
-  <div class="drawer-overlay" *ngIf="mostrarDrawer" (click)="cerrarDrawer()"></div>
-  <div class="profile-drawer" [class.open]="mostrarDrawer">
-    <div class="drawer-header">
-      <h3>Mi Perfil</h3>
-      <button class="drawer-close" (click)="cerrarDrawer()">&times;</button>
     </div>
-    <div class="drawer-body">
-      <div class="profile-avatar-section">
-        <div class="profile-avatar-large" [style.background]="avatarColor(usuario)">{{ inicialUsuario }}</div>
-      </div>
-      <div class="profile-name">{{ userData?.fullname || userData?.username }}</div>
-      <div class="profile-email">{{ userData?.email }}</div>
-      <div class="profile-role">
-        <span class="badge-role" [ngClass]="rolUsuario === 'admin' ? 'badge-admin' : rolUsuario === 'agent' ? 'badge-agent' : 'badge-viewer'">{{ rolUsuario }}</span>
-      </div>
+  </main>
 
-      <div class="profile-section-divider"></div>
-      <button class="btn-logout drawer-logout" (click)="cerrarSesion()">
-        <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+  <!-- ===== PROFILE DRAWER ===== -->
+  <div class="position-fixed top-0 start-0 w-100 h-100" *ngIf="mostrarDrawer" style="background: rgba(0,0,0,0.5); z-index: 1040; animation: fadeIn 0.2s ease;" (click)="cerrarDrawer()"></div>
+  <div class="position-fixed top-0 end-0 h-100 d-flex flex-column slide-in-right" *ngIf="mostrarDrawer"
+       style="width: 320px; background: var(--bg-card); border-left: 1px solid var(--border-color); z-index: 1050; box-shadow: -8px 0 30px rgba(0,0,0,0.4);">
+    <div class="d-flex justify-content-end p-3">
+      <button style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px;"
+              (click)="cerrarDrawer()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="flex-grow-1 d-flex flex-column align-items-center px-4 pb-4">
+      <div class="mb-3">
+        <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+          <img *ngIf="imagenPerfilUrl" [src]="imagenPerfilUrl" style="width: 100%; height: 100%; object-fit: cover;">
+          <div *ngIf="!imagenPerfilUrl" style="width: 100%; height: 100%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 3rem;">{{ inicialUsuario }}</div>
+        </div>
+      </div>
+      <div style="font-size: 1.25rem; font-weight: 600; text-align: center; margin-bottom: 4px; color: var(--text-primary);">{{ userData?.fullname || usuario }}</div>
+      <div style="text-align: center; margin-bottom: 12px; font-size: 0.8125rem; color: var(--text-secondary);">{{ userData?.email }}</div>
+      <div class="mb-3">
+        <span style="display: inline-flex; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.04em;"
+              [style.background]="rolUsuario === 'admin' ? 'rgba(168,85,247,0.12)' : rolUsuario === 'agent' ? 'rgba(59,130,246,0.12)' : 'rgba(107,114,128,0.12)'"
+              [style.color]="rolUsuario === 'admin' ? '#c084fc' : rolUsuario === 'agent' ? '#60a5fa' : '#9ca3af'">
+          {{ rolUsuario }}
+        </span>
+      </div>
+      <hr style="width: 100%; border-color: var(--border-color); margin: 1.5rem 0;">
+      <button style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 8px 16px; border-radius: 8px; border: none; font-size: 0.875rem; font-weight: 500; color: #f87171; background: transparent; cursor: pointer; transition: all 0.15s;"
+              (click)="cerrarSesion()"
+              onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Cerrar Sesión
       </button>
     </div>
   </div>
+</div>
 
+<div *ngIf="!estaLogueado" style="min-height: 100vh; background: var(--bg-main);">
+  <router-outlet></router-outlet>
 </div>
