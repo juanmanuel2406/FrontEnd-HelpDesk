@@ -97,9 +97,10 @@ export class Registro {
           this.mostrarNotificacion('danger', resultado.mensaje || 'Error al registrar el usuario.');
         }
       },
-      error: () => {
+      error: (err: any) => {
         this.cargando = false;
-        this.mostrarNotificacion('danger', 'Error al conectar con el servidor.');
+        const msg = err.error?.mensaje || err.error?.title || 'Error al conectar con el servidor.';
+        this.mostrarNotificacion('danger', msg);
       }
     });
   }

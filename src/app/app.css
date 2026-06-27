@@ -1780,9 +1780,20 @@
   from { transform: translateY(-8px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+@keyframes slideInUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
 
 .fade-in { animation: fadeIn 0.2s ease; }
 .slide-in-right { animation: slideInRight 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.chat-input::placeholder { color: var(--text-muted); }
+.chat-img { max-width: 100%; border-radius: 8px; margin-top: 4px; }
+.chat-link { color: #60a5fa; text-decoration: underline; }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
 
 .nav-icon-btn {
   width: 36px;
@@ -1823,3 +1834,55 @@
 }
 .nav-item-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .nav-item-btn.active { background: var(--bg-hover); color: var(--accent); }
+
+@media (max-width: 768px) {
+  .form-card-body {
+    padding: 16px !important;
+  }
+  .form-card-header {
+    padding: 12px 16px !important;
+  }
+  .form-card-body > [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  table {
+    font-size: 0.75rem !important;
+  }
+  table th, table td {
+    padding: 6px 8px !important;
+    white-space: nowrap;
+  }
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  [style*="margin-left"] {
+    margin-left: 0 !important;
+  }
+  nav[style*="position: fixed"][style*="left: 0"][style*="top: 0"][style*="height: 100vh"] {
+    width: 56px !important;
+  }
+  nav[style*="position: fixed"][style*="left: 0"][style*="top: 0"][style*="height: 100vh"] > div {
+    width: 200px !important;
+  }
+  [style*="width: 420px"][style*="bottom: 0"][style*="right: 0"] {
+    width: 100% !important;
+    height: 60vh !important;
+    margin: 0 !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+  [style*="max-width: 1400px"][style*="padding: 24px 32px"] {
+    padding: 16px !important;
+  }
+  .content-padding {
+    padding: 16px !important;
+  }
+  [style*="padding: 24px 32px"] {
+    padding: 16px !important;
+  }
+  [style*="padding: 32px 32px"] {
+    padding: 16px !important;
+  }
+}
