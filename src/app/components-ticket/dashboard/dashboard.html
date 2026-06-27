@@ -143,7 +143,7 @@
       </div>
       <div class="form-card-body">
         <div class="table-responsive">
-          <table class="tickets-table">
+            <table class="tickets-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -153,12 +153,13 @@
                 <th>Creador</th>
                 <th>Asignado</th>
                 <th>Fecha</th>
+                <th>Acción</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let t of dashboard.recentTickets">
                 <td class="td-id">{{ t.id }}</td>
-                <td class="td-title">{{ t.title }}</td>
+                <td class="td-title"><a style="cursor:pointer;color:inherit;text-decoration:none;" (click)="verDetalle.emit(t)">{{ t.title }}</a></td>
                 <td>
                   <span class="badge-estado" [ngClass]="t.status === 'closed' ? 'badge-completado' : t.status === 'resolved' ? 'badge-completado' : t.status === 'in_progress' ? 'badge-pendiente' : 'badge-pendiente'">
                     {{ estadoLabel(t.status) }}
@@ -175,6 +176,12 @@
                   <span *ngIf="!t.assignedToFullname" class="text-muted">—</span>
                 </td>
                 <td class="td-fecha">{{ fechaLabel(t.createdAt) }}</td>
+                <td>
+                  <button class="btn-action btn-action-chat" (click)="abrirChat.emit(t); $event.stopPropagation()" title="Chat"><i class="bi bi-chat-dots"></i></button>
+                  <button class="btn-action btn-action-complete" *ngIf="t.status !== 'closed'" (click)="toggleEstado.emit(t); $event.stopPropagation()" title="Completar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-action btn-action-reopen" *ngIf="t.status === 'closed'" (click)="toggleEstado.emit(t); $event.stopPropagation()" title="Reabrir"><i class="bi bi-arrow-counterclockwise"></i></button>
+                  <button class="btn-action btn-action-assign" *ngIf="!t.assignedToFullname" (click)="asignarTicket.emit(t); $event.stopPropagation()" title="Asignarme"><i class="bi bi-person-plus"></i></button>
+                </td>
               </tr>
             </tbody>
           </table>

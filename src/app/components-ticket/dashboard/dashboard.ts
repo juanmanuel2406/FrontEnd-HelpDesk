@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { TicketService, DashboardResponse } from '../../services-ticket/ticket-service';
 
@@ -12,6 +12,11 @@ export class Dashboard implements OnInit {
 
   dashboard: DashboardResponse | null = null;
   cargando: boolean = true;
+
+  @Output() verDetalle = new EventEmitter<any>();
+  @Output() abrirChat = new EventEmitter<any>();
+  @Output() toggleEstado = new EventEmitter<any>();
+  @Output() asignarTicket = new EventEmitter<any>();
 
   constructor(
     private service: TicketService,

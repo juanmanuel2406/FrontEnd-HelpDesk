@@ -169,9 +169,10 @@ export class Login implements OnInit, OnDestroy {
           this.manejarFallo();
         }
       },
-      error: (_err: any) => {
-        this.mostrarNotificacion('danger', 'Error al conectar con el servidor.');
-        this.manejarFallo();
+      error: (err: any) => {
+        const msg = err.error?.mensaje || err.error?.title || 'Error al conectar con el servidor.';
+        this.mostrarNotificacion('danger', msg);
+        if (!err.error?.mensaje && !err.error?.title) this.manejarFallo();
       }
     });
   }
