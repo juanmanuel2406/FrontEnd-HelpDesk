@@ -39,6 +39,7 @@ export interface TicketUpdateDTO {
   priority?: string | null;
   assignedToId?: number | null;
   area?: number | null;
+  solution?: string | null;
 }
 
 export interface GeneralResponse {
@@ -92,6 +93,7 @@ export interface TicketDetailResponse {
   assignedToEmail: string | null;
   area?: number | null;
   areaName?: string | null;
+  solution?: string | null;
   createdAt: string;
   updatedAt: string | null;
 }

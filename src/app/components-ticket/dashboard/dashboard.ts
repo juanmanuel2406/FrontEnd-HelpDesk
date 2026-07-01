@@ -12,6 +12,7 @@ export class Dashboard implements OnInit {
 
   dashboard: DashboardResponse | null = null;
   cargando: boolean = true;
+  error: string | null = null;
 
   @Output() verDetalle = new EventEmitter<any>();
   @Output() abrirChat = new EventEmitter<any>();
@@ -34,14 +35,18 @@ export class Dashboard implements OnInit {
 
   cargarDashboard(): void {
     this.cargando = true;
+    this.error = null;
     this.service.getDashboard(this.token).subscribe({
       next: (data: DashboardResponse) => {
         this.dashboard = data;
         this.cargando = false;
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.cargando = false;
+        this.error = (err?.status === 401 || err?.status === 403)
+          ? 'Tu sesión expiró. Iniciá sesión nuevamente.'
+          : 'No se pudo cargar el dashboard. Reintentá.';
         this.cdr.detectChanges();
       }
     });

@@ -3,7 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { TicketService, TicketCreateDTO, TicketUpdateDTO, NotificationResponse, TeamResponse, TeamMemberResponse, CreateTeamDTO } from './services-ticket/ticket-service';
+import { TicketService, TicketCreateDTO, TicketUpdateDTO } from './services-ticket/ticket-service';
 import * as signalR from '@microsoft/signalr';
 
 @Component({
@@ -55,19 +55,12 @@ export class App implements OnInit {
   private lastTypingSent: number = 0;
   private chatPollingTimer: any = null;
 
-  // Notifications
-  notificaciones: NotificationResponse[] = [];
-  mostrarPanelNotif: boolean = false;
+  // NLP Chatbot
+  chatNlpActivo: boolean = false;
+  chatNlpEscalado: boolean = false;
+  chatFilterActivo: 'bot' | 'human' = 'bot';
 
-  // Teams
-  teams: TeamResponse[] = [];
-  mostrarCrearTeamModal: boolean = false;
-  createTeamForm: any = { name: '', description: '' };
-  teamSelectedMembers: any[] = [];
-  teamMembersMap: { [teamId: number]: TeamMemberResponse[] } = {};
-  teamExpandId: number | null = null;
-  inviteEmailText: string = '';
-  invitandoEmail: boolean = false;
+  // Notifications removed per user request
 
   constructor(
     public cdr: ChangeDetectorRef,
@@ -154,7 +147,9 @@ export class App implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isDarkMode = true;
     this.verificarSesion();
+    this.iniciarChequeoRol();
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => this.verificarSesion());
@@ -176,14 +171,21 @@ export class App implements OnInit {
       this.userData = raw ? JSON.parse(raw) : null;
       this.rolUsuario = this.mapearRol(this.userData?.role);
       this.imagenPerfilUrl = localStorage.getItem('avatar_' + this.usuario);
+      // Restore per-user theme
+      const savedTheme = localStorage.getItem('isDarkMode_' + this.usuario);
+      if (savedTheme !== null) this.isDarkMode = savedTheme === 'true';
+      else this.isDarkMode = true;
       this.cargarTickets();
-      this.cargarNotificaciones();
+      this.cargarAreas();
     }
     this.cdr.detectChanges();
   }
 
   toggleTheme(): void {
     this.isDarkMode = !this.isDarkMode;
+    if (this.usuario) {
+      localStorage.setItem('isDarkMode_' + this.usuario, String(this.isDarkMode));
+    }
     this.cdr.detectChanges();
   }
 
@@ -398,7 +400,7 @@ export class App implements OnInit {
   verDetalleTicket(ticket: any): void {
     this.sidebarActiva = 'detalle-ticket';
     this.ticketDetalle = null;
-    this.detalleForm = { title: '', assignedToId: null, area: null };
+    this.detalleForm = { title: '', assignedToId: null, area: null, solution: '' };
     this.cargarAreas();
     this.cargarAgentes();
     this.service.getTicketDetail(ticket.id || ticket.Id, this.token).subscribe({
@@ -407,6 +409,7 @@ export class App implements OnInit {
         this.detalleForm.title = data.title || data.Title || '';
         this.detalleForm.assignedToId = data.assignedToId ?? data.AssignedToId ?? null;
         this.detalleForm.area = data.area ?? data.Area ?? null;
+        this.detalleForm.solution = data.solution || data.Solution || '';
         this.cdr.detectChanges();
       },
       error: () => {
@@ -441,6 +444,7 @@ export class App implements OnInit {
     else dto.assignedToId = null;
     if (this.detalleForm.area !== null && this.detalleForm.area !== undefined) dto.area = this.detalleForm.area;
     else dto.area = null;
+    if (this.detalleForm.solution?.trim()) dto.solution = this.detalleForm.solution.trim();
     if (!dto.title) {
       this.mostrarNotificacion('danger', 'El título no puede estar vacío.');
       return;
@@ -473,10 +477,17 @@ export class App implements OnInit {
 
   // === AREAS & AGENTS ===
   private cargarAreas(): void {
+    // Try cached areas first (frontend-only persistence)
+    const cached = localStorage.getItem('cachedAreas');
+    if (cached) {
+      try { this.areas = JSON.parse(cached); } catch {}
+    }
+    // Refresh from API in background
     if (!this.token) return;
     this.service.getAreas(this.token).subscribe({
       next: (data: any) => {
         this.areas = Array.isArray(data) ? data : [];
+        localStorage.setItem('cachedAreas', JSON.stringify(this.areas));
         this.cdr.detectChanges();
       },
       error: () => this.cdr.detectChanges()
@@ -495,218 +506,6 @@ export class App implements OnInit {
   }
 
   // === NOTIFICATIONS ===
-  cargarNotificaciones(): void {
-    if (!this.token) return;
-    this.service.getMyNotifications(this.token).subscribe({
-      next: (data: any) => {
-        this.notificaciones = Array.isArray(data) ? data : [];
-        this.cdr.detectChanges();
-      },
-      error: () => this.cdr.detectChanges()
-    });
-  }
-
-  get notifNoLeidas(): number {
-    return this.notificaciones.filter(n => !n.isRead).length;
-  }
-
-  toggleNotifPanel(): void {
-    this.mostrarPanelNotif = !this.mostrarPanelNotif;
-    if (this.mostrarPanelNotif) this.cargarNotificaciones();
-    this.cdr.detectChanges();
-  }
-
-  marcarLeida(n: NotificationResponse): void {
-    if (n.isRead) return;
-    this.service.markNotificationRead(n.id, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          n.isRead = true;
-          this.cdr.detectChanges();
-        }
-      },
-      error: () => this.cdr.detectChanges()
-    });
-  }
-
-  marcarTodasLeidas(): void {
-    this.service.markAllNotificationsRead(this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          this.notificaciones.forEach(n => n.isRead = true);
-          this.cdr.detectChanges();
-        }
-      },
-      error: () => this.cdr.detectChanges()
-    });
-  }
-
-  notifIcon(type: string): string {
-    const map: any = { ticket_created: 'bi-plus-circle', ticket_assigned: 'bi-person-plus', ticket_closed: 'bi-check-circle', ticket_updated: 'bi-pencil', team_invite: 'bi-people' };
-    return map[type] || 'bi-bell';
-  }
-
-  clickNotificacion(n: NotificationResponse): void {
-    if (n.ticketId) {
-      this.seleccionarOpcion('tus-tickets');
-      this.verDetalleTicket({ id: n.ticketId });
-    }
-  }
-
-  notifColor(type: string): string {
-    const map: any = { ticket_created: '#3b82f6', ticket_assigned: '#22c55e', ticket_closed: '#a855f7', ticket_updated: '#f59e0b', team_invite: '#06b6d4' };
-    return map[type] || '#8888a0';
-  }
-
-  // === TEAMS ===
-  cargarTeams(): void {
-    if (!this.token) return;
-    this.service.getTeams(this.token).subscribe({
-      next: (data: any) => {
-        this.teams = Array.isArray(data) ? data : [];
-        this.cdr.detectChanges();
-      },
-      error: () => this.cdr.detectChanges()
-    });
-  }
-
-  crearTeam(): void {
-    if (!this.createTeamForm.name?.trim()) {
-      this.mostrarNotificacion('danger', 'El nombre del equipo es obligatorio.');
-      return;
-    }
-    const dto: CreateTeamDTO = { name: this.createTeamForm.name.trim(), description: this.createTeamForm.description?.trim() || null };
-    this.service.createTeam(dto, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          this.mostrarNotificacion('success', res.mensaje || 'Equipo creado correctamente.');
-          this.mostrarCrearTeamModal = false;
-          this.createTeamForm = { name: '', description: '' };
-          this.cargarTeams();
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al crear el equipo.');
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        const msg = err.error?.mensaje || err.error?.title || 'Error al crear el equipo.';
-        this.mostrarNotificacion('danger', msg);
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  eliminarTeam(team: TeamResponse): void {
-    if (!confirm(`¿Eliminar el equipo "${team.name}"?`)) return;
-    this.service.deleteTeam(team.id, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          this.teams = this.teams.filter(t => t.id !== team.id);
-          this.mostrarNotificacion('success', res.mensaje || 'Equipo eliminado.');
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al eliminar el equipo.');
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        const msg = err.error?.mensaje || err.error?.title || 'Error al eliminar.';
-        this.mostrarNotificacion('danger', msg);
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  toggleTeamMembers(team: TeamResponse): void {
-    if (this.teamExpandId === team.id) {
-      this.teamExpandId = null;
-      this.cdr.detectChanges();
-      return;
-    }
-    this.teamExpandId = team.id;
-    this.cargarMiembrosTeam(team.id);
-  }
-
-  cargarMiembrosTeam(teamId: number): void {
-    this.service.getTeamMembers(teamId, this.token).subscribe({
-      next: (data: any) => {
-        this.teamMembersMap[teamId] = Array.isArray(data) ? data : [];
-        this.cdr.detectChanges();
-      },
-      error: () => this.cdr.detectChanges()
-    });
-  }
-
-  agregarMiembrosSeleccionados(teamId: number): void {
-    const ids = [...this.teamSelectedMembers];
-    this.teamSelectedMembers = [];
-    ids.forEach(u => this.agregarMiembroTeam(teamId, u.userId));
-  }
-
-  agregarMiembroTeam(teamId: number, userId: number): void {
-    this.service.addTeamMember(teamId, userId, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          this.mostrarNotificacion('success', res.mensaje || 'Miembro agregado.');
-          this.cargarMiembrosTeam(teamId);
-          this.teamSelectedMembers = this.teamSelectedMembers.filter(u => u.userId !== userId);
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al agregar miembro.');
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        const msg = err.error?.mensaje || err.error?.title || 'Error al agregar miembro.';
-        this.mostrarNotificacion('danger', msg);
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  removerMiembroTeam(teamId: number, userId: number): void {
-    if (!confirm('¿Quitar este miembro del equipo?')) return;
-    this.service.removeTeamMember(teamId, userId, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          this.mostrarNotificacion('success', res.mensaje || 'Miembro quitado.');
-          this.cargarMiembrosTeam(teamId);
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al quitar miembro.');
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        const msg = err.error?.mensaje || err.error?.title || 'Error al quitar miembro.';
-        this.mostrarNotificacion('danger', msg);
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  invitarPorEmail(teamId: number): void {
-    if (!this.inviteEmailText?.trim()) return;
-    this.invitandoEmail = true;
-    this.cdr.detectChanges();
-    this.service.inviteTeamMemberByEmail(teamId, this.inviteEmailText.trim(), this.token).subscribe({
-      next: (res: any) => {
-        this.invitandoEmail = false;
-        if (res.estado !== false) {
-          this.mostrarNotificacion('success', res.mensaje || 'Invitación enviada correctamente.');
-          this.inviteEmailText = '';
-          this.cargarMiembrosTeam(teamId);
-        } else {
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al enviar invitación.');
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        this.invitandoEmail = false;
-        const msg = err.error?.mensaje || err.error?.title || 'Error al enviar invitación.';
-        this.mostrarNotificacion('danger', msg);
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
   // === USER MANAGEMENT (admin) ===
   cargarUsuarios(): void {
     if (!this.token) return;
@@ -731,8 +530,7 @@ export class App implements OnInit {
     this.service.updateUserRole(user.userId || user.UserId, nuevoRol, this.token).subscribe({
       next: (res: any) => {
         if (res.estado !== false) {
-          user.role = nuevoRol;
-          user.Role = nuevoRol;
+          this.cargarUsuarios();
           this.mostrarNotificacion('success', `Rol de ${user.username || user.Username} actualizado a "${nuevoRol}"`);
         } else {
           select.value = anterior;
@@ -753,12 +551,15 @@ export class App implements OnInit {
     const select = event.target as HTMLSelectElement;
     const nuevoAreaId = select.value === '' ? null : Number(select.value);
     const userId = user.userId || user.UserId;
-    const areaAnterior = user.area ?? user.Area ?? user.areaId ?? user.AreaId ?? null;
+    const areaAnterior = user.areaId ?? user.AreaId ?? user.area ?? user.Area ?? null;
+    const areaFind = nuevoAreaId != null ? this.areas.find(a => (a.id || a.Id) === nuevoAreaId) : null;
     this.service.updateUserArea(userId, nuevoAreaId, this.token).subscribe({
       next: (res: any) => {
         if (res.estado !== false) {
-          user.area = nuevoAreaId;
-          user.Area = nuevoAreaId;
+          user.areaId = nuevoAreaId;
+          user.AreaId = nuevoAreaId;
+          user.area = areaFind ? (areaFind.area_Name || areaFind.Area_Name || areaFind.name || areaFind.Name) : null;
+          user.Area = user.area;
           this.mostrarNotificacion('success', `Área de ${user.username || user.Username} actualizada.`);
         } else {
           select.value = areaAnterior == null ? '' : String(areaAnterior);
@@ -772,6 +573,42 @@ export class App implements OnInit {
         this.mostrarNotificacion('danger', msg);
         this.cdr.detectChanges();
       }
+    });
+  }
+
+  // === ROLE CHANGE MONITOR ===
+  private intervalRol: any = null;
+
+  private iniciarChequeoRol(): void {
+    this.detenerChequeoRol();
+    this.intervalRol = setInterval(() => this.chequearRol(), 60000);
+  }
+
+  private detenerChequeoRol(): void {
+    if (this.intervalRol) {
+      clearInterval(this.intervalRol);
+      this.intervalRol = null;
+    }
+  }
+
+  private chequearRol(): void {
+    if (!this.token || !this.userData) return;
+    this.service.getUsers(this.token).subscribe({
+      next: (data: any) => {
+        const users = Array.isArray(data) ? data : [];
+        const yo = users.find((u: any) => (u.userId || u.UserId) === this.userData?.userId);
+        if (yo) {
+          const nuevoRol = this.mapearRol(yo.role || yo.Role);
+          if (nuevoRol !== this.rolUsuario) {
+            this.rolUsuario = nuevoRol;
+            this.userData.role = yo.role || yo.Role;
+            sessionStorage.setItem('userData', JSON.stringify(this.userData));
+            this.mostrarNotificacion('info', `Tu rol ha sido cambiado a "${nuevoRol}".`);
+            this.cdr.detectChanges();
+          }
+        }
+      },
+      error: () => {}
     });
   }
 
@@ -822,11 +659,6 @@ export class App implements OnInit {
     });
   }
 
-  actualizarProgresoPreview(ticket: any, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    ticket.progress = parseInt(input.value, 10);
-  }
-
   // === CHAT ===
   abrirChat(ticket: any, event?: Event): void {
     if (event) event.stopPropagation();
@@ -834,6 +666,9 @@ export class App implements OnInit {
     this.chatMessages = [];
     this.chatMessageText = '';
     this.chatCargando = true;
+    this.chatNlpActivo = false;
+    this.chatNlpEscalado = false;
+    this.chatFilterActivo = this.rolUsuario === 'viewer' ? 'bot' : 'human';
     this.chatSubiendoImagen = false;
     this.chatSelectedImage = null;
     this.chatImagePreviewUrl = null;
@@ -851,6 +686,13 @@ export class App implements OnInit {
     this.iniciarPollingChat(ticketId);
   }
 
+  get chatMessagesFiltrados(): any[] {
+    if (this.chatFilterActivo === 'bot') {
+      return this.chatMessages.filter(m => m.userUsername === 'soporteit-bot');
+    }
+    return this.chatMessages.filter(m => m.userUsername !== 'soporteit-bot');
+  }
+
   cerrarChat(): void {
     this.detenerPollingChat();
     this.desconectarHub();
@@ -859,6 +701,9 @@ export class App implements OnInit {
     this.chatMessageText = '';
     this.chatCargando = false;
     this.chatTypingUser = null;
+    this.chatNlpActivo = false;
+    this.chatNlpEscalado = false;
+    this.chatFilterActivo = 'bot';
     this.removerImagenSeleccionada();
     this.cdr.detectChanges();
   }
@@ -875,6 +720,10 @@ export class App implements OnInit {
       this.ngZone.run(() => {
         if (!this.chatMessages.find(m => m.id === msg.id)) {
           this.chatMessages = [...this.chatMessages, msg];
+          if (msg.userUsername === 'soporteit-bot' && msg.content?.includes('Redirigiendo a un agente')) {
+            this.chatNlpActivo = false;
+            this.chatNlpEscalado = true;
+          }
           this.cdr.detectChanges();
           setTimeout(() => this.scrollChatAlFinal(), 100);
         }
@@ -898,14 +747,27 @@ export class App implements OnInit {
     this.hubConnection.onreconnected(() => {
       if (this.chatTicket) {
         this.cargarMensajes(this.chatTicket.id || this.chatTicket.Id);
+        this.hubConnection?.invoke('JoinTicketGroup', this.chatTicket.id || this.chatTicket.Id).catch(() => {});
       }
     });
 
-    this.hubConnection.start().catch(err => console.error('[chat] SignalR error:', err));
+    this.hubConnection.start()
+      .then(() => {
+        this.chatNlpActivo = this.rolUsuario === 'viewer';
+        return this.hubConnection!.invoke('JoinTicketGroup', ticketId);
+      })
+      .catch(err => {
+        console.error('[chat] SignalR error:', err);
+        this.mostrarNotificacion('danger', 'Error de conexión con el chat en tiempo real. Usando actualización periódica.');
+      });
   }
 
   private desconectarHub(): void {
     if (this.hubConnection) {
+      const ticketId = this.chatTicket?.id || this.chatTicket?.Id;
+      if (ticketId) {
+        this.hubConnection.invoke('LeaveTicketGroup', ticketId).catch(() => {});
+      }
       this.hubConnection.stop().catch(() => {});
       this.hubConnection = null;
     }
@@ -978,6 +840,13 @@ export class App implements OnInit {
       this.chatSubiendoImagen = false;
       this.cdr.detectChanges();
     };
+
+    if (this.chatNlpActivo && this.esViewer && !this.chatSelectedImage && texto && this.hubConnection) {
+      this.hubConnection.invoke('SendNlpMessage', this.chatTicket.id, texto)
+        .then(() => done())
+        .catch(() => fail('Error al enviar.'));
+      return;
+    }
 
     if (!this.chatSelectedImage) {
       this.service.sendTicketMessage(this.chatTicket.id, texto!, this.token).subscribe({
@@ -1159,6 +1028,7 @@ export class App implements OnInit {
     this.mostrarDrawer = false;
     this.tickets = [];
     this.ticketSeleccionado = null;
+    this.detenerChequeoRol();
     this.cerrarChat();
     sessionStorage.removeItem('logueado');
     sessionStorage.removeItem('usuario');
@@ -1197,13 +1067,8 @@ export class App implements OnInit {
       this.editMode = false;
       this.resetForm();
       this.cargarAreas();
-    } else if (opcion === 'inbox') {
-      this.cargarNotificaciones();
     } else if (opcion === 'dashboard') {
     } else if (opcion === 'usuarios') {
-      this.cargarUsuarios();
-    } else if (opcion === 'teams') {
-      this.cargarTeams();
       this.cargarUsuarios();
     }
     this.cerrarDrawer();

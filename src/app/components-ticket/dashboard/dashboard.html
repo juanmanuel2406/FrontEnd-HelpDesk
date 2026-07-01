@@ -6,6 +6,11 @@
     </div>
   </div>
 
+  <div *ngIf="!cargando && error" class="text-center p-5">
+    <p class="text-danger">{{ error }}</p>
+    <button class="btn btn-primary" (click)="cargarDashboard()">Reintentar</button>
+  </div>
+
   <div *ngIf="!cargando && dashboard">
     <!-- KPI CARDS -->
     <div class="kpi-grid">
