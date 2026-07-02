@@ -548,32 +548,46 @@ export class App implements OnInit {
   }
 
   cambiarAreaUsuario(user: any, event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const nuevoAreaId = select.value === '' ? null : Number(select.value);
-    const userId = user.userId || user.UserId;
-    const areaAnterior = user.areaId ?? user.AreaId ?? user.area ?? user.Area ?? null;
-    const areaFind = nuevoAreaId != null ? this.areas.find(a => (a.id || a.Id) === nuevoAreaId) : null;
-    this.service.updateUserArea(userId, nuevoAreaId, this.token).subscribe({
-      next: (res: any) => {
-        if (res.estado !== false) {
-          user.areaId = nuevoAreaId;
-          user.AreaId = nuevoAreaId;
-          user.area = areaFind ? (areaFind.area_Name || areaFind.Area_Name || areaFind.name || areaFind.Name) : null;
-          user.Area = user.area;
-          this.mostrarNotificacion('success', `Área de ${user.username || user.Username} actualizada.`);
-        } else {
-          select.value = areaAnterior == null ? '' : String(areaAnterior);
-          this.mostrarNotificacion('danger', res.mensaje || 'Error al actualizar el área.');
+    try {
+      const select = event.target as HTMLSelectElement;
+      const nuevoAreaId = select.value === '' ? null : Number(select.value);
+      const userId = user.userId || user.UserId;
+      const areaAnterior = user.areaId ?? user.AreaId ?? user.area ?? user.Area ?? null;
+      const areaFind = nuevoAreaId != null ? this.areas.find(a => (a.id || a.Id) === nuevoAreaId) : null;
+      this.service.updateUserArea(userId, nuevoAreaId, this.token).subscribe({
+        next: (res: any) => {
+          try {
+            if (res.estado !== false) {
+              user.areaId = nuevoAreaId;
+              user.AreaId = nuevoAreaId;
+              user.area = areaFind ? (areaFind.area_Name || areaFind.Area_Name || areaFind.name || areaFind.Name) : null;
+              user.Area = user.area;
+              this.cargarUsuarios();
+              this.mostrarNotificacion('success', `Área de ${user.username || user.Username} actualizada.`);
+            } else {
+              select.value = areaAnterior == null ? '' : String(areaAnterior);
+              this.mostrarNotificacion('danger', res.mensaje || 'Error al actualizar el área.');
+            }
+          } catch (e) {
+            this.mostrarNotificacion('danger', 'Error al procesar la respuesta.');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err: any) => {
+          try {
+            select.value = areaAnterior == null ? '' : String(areaAnterior);
+            const msg = err.error?.mensaje || err.error?.title || 'Error al actualizar el área.';
+            this.mostrarNotificacion('danger', msg);
+          } catch (e) {
+            this.mostrarNotificacion('danger', 'Error al actualizar el área.');
+          }
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        select.value = areaAnterior == null ? '' : String(areaAnterior);
-        const msg = err.error?.mensaje || err.error?.title || 'Error al actualizar el área.';
-        this.mostrarNotificacion('danger', msg);
-        this.cdr.detectChanges();
-      }
-    });
+      });
+    } catch (e) {
+      this.mostrarNotificacion('danger', 'Error al cambiar el área.');
+      this.cdr.detectChanges();
+    }
   }
 
   // === ROLE CHANGE MONITOR ===
